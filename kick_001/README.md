@@ -1,0 +1,16 @@
+# ise_motor_driver
+- DCMotorDriver用制御コード
+- arduino
+  - arduino用ライブラリ
+  - ise_motor_driver.cpp, ise_motor_driver.h, ti2c.cpp, ti2c.hをarduinoのプロジェクトにコピーして使う。
+  - arduino.inoが呼び出し側のサンプルコード
+- ise_motor_driver_ip
+  - avr用ライブラリ
+  - avrStudioでatslnを開く。
+  - debug用しか作成してません。
+  - ise_motor_driver_ip.cppのF_CPUをavrのクロック周波数に合わせる。
+  - ise_motor_driver_ip.cppのI2C_ADDRを設定する。0x10など。
+- trcem
+  - i2c通信のライブラリ(NASA先輩作)
+- kairozu.jpg
+  - AVR周辺の回路図

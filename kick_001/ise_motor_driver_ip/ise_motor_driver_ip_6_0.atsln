@@ -1,0 +1,20 @@
+
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Atmel Studio Solution File, Format Version 11.00
+Project("{E66E83B9-2572-4076-B26E-6BE79FF3018A}") = "ise_motor_driver_ip", "ise_motor_driver_ip\ise_motor_driver_ip_6_0.cppproj", "{F2E89263-B819-4711-8CCA-04020D8CF8C8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F2E89263-B819-4711-8CCA-04020D8CF8C8}.Debug|AVR.ActiveCfg = Debug|AVR
+		{F2E89263-B819-4711-8CCA-04020D8CF8C8}.Debug|AVR.Build.0 = Debug|AVR
+		{F2E89263-B819-4711-8CCA-04020D8CF8C8}.Release|AVR.ActiveCfg = Release|AVR
+		{F2E89263-B819-4711-8CCA-04020D8CF8C8}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
