@@ -1,16 +1,13 @@
-# ise_motor_driver
-- DCMotorDriver用制御コード
-- arduino
-  - arduino用ライブラリ
-  - ise_motor_driver.cpp, ise_motor_driver.h, ti2c.cpp, ti2c.hをarduinoのプロジェクトにコピーして使う。
-  - arduino.inoが呼び出し側のサンプルコード
-- ise_motor_driver_ip
-  - avr用ライブラリ
-  - avrStudioでatslnを開く。
-  - debug用しか作成してません。
-  - ise_motor_driver_ip.cppのF_CPUをavrのクロック周波数に合わせる。
-  - ise_motor_driver_ip.cppのI2C_ADDRを設定する。0x10など。
-- trcem
-  - i2c通信のライブラリ(NASA先輩作)
-- kairozu.jpg
-  - AVR周辺の回路図
+# 注意
+まだ実機で試していません
+
+# 仕様
+ise_motor_driverベース
+
+# 使い方
+ 1.リセットボタンでスタンバイ  
+ 2.シリアルモニタでデータを入れると正転スタート  
+ 3.タッチセンサが反応してストップ  
+ 4.シリアルモニタでデータを入れると逆転スタート  
+ 5.正転と同じ回転数回転したら自動でストップ  
+ 6.次使う前にリセットボタンを押す  
