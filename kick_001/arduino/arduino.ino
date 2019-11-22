@@ -14,23 +14,20 @@
 /*address of AVR on ise-motor-driver*/
 uint8_t addr = 0x12;
 /*pin setting*/
-const int TOUCH_PIN1 = 7;
-const int TOUCH_PIN2 = 6;
+const int TOUCH_PIN = 7;
 
 /*global varialbes*/
 int pw = 60; //power of moter (-100~100)
 long enc = 0; //value of encoder [step]
-long encMax = 0;
 int val = 0; //value of bytes available for reading from the serial port [byte]
-bool touch = HIGH; //value of touch sensor (OFF:HIGH ON:LOW) 
+bool touch = LOW; //value of touch sensor (OFF:LOW ON:HIGH) 
 
 IseMotorDriver motor = IseMotorDriver(addr);
 
 void setup(){
   Wire.begin();
-  Serial.begin(9600);
-  pinMode(TOUCH_PIN1, OUTPUT);
-  pinMode(TOUCH_PIN2, INPUT);
+  Serial.begin(115200);
+  pinMode(TOUCH_PIN, INPUT_PULLUP);
 
   //standing by mode
   while(val==0){
@@ -42,11 +39,10 @@ void setup(){
   }
 
   //normal ratation mode
-  while(touch==HIGH){
+  while(touch==LOW){
     motor.setSpeed(pw);
     enc = motor.encorder();
-    digitalWrite(TOUCH_PIN1,HIGH);
-    touch = digitalRead(TOUCH_PIN2);
+    touch = digitalRead(TOUCH_PIN);
     
     Serial.print("power: "); Serial.print(pw);
     Serial.print('\t');
@@ -78,7 +74,7 @@ void setup(){
   //stopping mode
   while(1){
     motor.setSpeed(0);
-    Serial.println("stopping"); //Serial.print('\t');
+    Serial.println("finish"); //Serial.print('\t');
     //Serial.print("encoder: "); Serial.println(enc);
 
     delay(10);
