@@ -1,0 +1,9 @@
+const: {
+  spec: {
+    center_to_wheel: 0.230,
+    wheel_radius: 0.040,
+    encoder_resolution: 4096,
+    frequency: 100
+  },
+  i2c_addr: [ 0x61, 0x22, 0x33 ]
+}
