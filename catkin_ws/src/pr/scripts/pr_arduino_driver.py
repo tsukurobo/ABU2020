@@ -38,7 +38,7 @@ class ArduinoDriver:
 
         self.raw_power_pub = rospy.Publisher('raw_power', RawPower, queue_size = 10)
         rospy.Subscriber('raw_encoder', RawEncoder, self.on_receive_delta_enc)
-        rospy.Subscriber('twist', Twist, self.on_receive_twist)
+        rospy.Subscriber('cmd_vel', Twist, self.on_receive_cmd_vel)
 
     # rename on_receive_data ?
     def on_receive_delta_enc(self, delta_enc):
@@ -46,8 +46,8 @@ class ArduinoDriver:
         delta_position = LA.multi_dot([R(self.position[2]), self.enc2local_matrix, delta_enc])
         self.position += delta_position
 
-    def on_receive_twist(self, twist):
-        self.velocity = [twist.linear.x, twist.linear.y, twist.angular.z]
+    def on_receive_cmd_vel(self, cmd_vel):
+        self.velocity = [cmd_vel.linear.x, cmd_vel.linear.y, cmd_vel.angular.z]
 
     def calc_power(self, direction):
         power = LA.multi_dot([self.local2wheel_matrix, R(self.position[2]), direction])
