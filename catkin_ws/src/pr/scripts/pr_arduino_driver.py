@@ -67,9 +67,9 @@ class ArduinoDriver:
             data = RawPower()
             pmax = np.amax(map(abs, power))
             if pmax > 1.0: power /= pmax
-            data.p1 = int(power[0]*120)
-            data.p2 = int(power[1]*120)
-            data.p3 = int(power[2]*120)
+            data.p1 = int(power[0]*100)
+            data.p2 = int(power[1]*100)
+            data.p3 = int(power[2]*100)
 
             self.raw_power_pub.publish(data)
             br = tf.TransformBroadcaster()
