@@ -8,7 +8,6 @@ from pr.msg import RawPower, RawEncoder
 
 import numpy as np
 import numpy.linalg as LA
-from pr_robocalc import R
 
 # (x,y,ω)に対する回転行列
 def R(theta):
