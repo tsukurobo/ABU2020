@@ -29,13 +29,9 @@ class ArduinoDriver:
 
         # 車輪の速度から機体中心のローカル座標系で見た速度に変換する
         self.enc2local_matrix = (self.wheel_circumference / self.encoder_resolution) * \
-                        np.dot(
-                                [[0,1,0],
-                                 [1,0,0],
-                                 [0,0,1]],
                                 LA.inv([[-1, 0, self.center_to_wheel],
                                         [0.5, -np.sqrt(3)/2, self.center_to_wheel],
-                                        [0.5, np.sqrt(3)/2, self.center_to_wheel]]))
+                                        [0.5, np.sqrt(3)/2, self.center_to_wheel]])
 
         # (x, y, ω)
         self.position = [0, 0, 0]
@@ -55,7 +51,7 @@ class ArduinoDriver:
         self.velocity = [cmd_vel.linear.x, cmd_vel.linear.y, cmd_vel.angular.z]
 
     def calc_power(self, direction):
-        power = LA.multi_dot([self.local2wheel_matrix, R(self.position[2]), direction])
+        power = LA.multi_dot([self.local2wheel_matrix, R(-self.position[2]), direction])
         maxp  = np.abs(np.amax(power))
         if maxp > 1: power *= 1./maxp
         return power
