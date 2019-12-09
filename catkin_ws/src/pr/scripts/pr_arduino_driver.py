@@ -24,14 +24,14 @@ class ArduinoDriver:
 
         # 機体中心のローカル座標系で見た速度からモーターの出力値に変換する
         self.local2wheel_matrix = [[-1, 0, 1],
-                                   [0.5, -np.sqrt(3)/2, 1],
-                                   [0.5, np.sqrt(3)/2, 1]]
+                                   [0.5, np.sqrt(3)/2, 1],
+                                   [0.5, -np.sqrt(3)/2, 1]]
 
         # 車輪の速度から機体中心のローカル座標系で見た速度に変換する
         self.enc2local_matrix = (self.wheel_circumference / self.encoder_resolution) * \
                                 LA.inv([[-1, 0, self.center_to_wheel],
-                                        [0.5, -np.sqrt(3)/2, self.center_to_wheel],
-                                        [0.5, np.sqrt(3)/2, self.center_to_wheel]])
+                                        [0.5, np.sqrt(3)/2, self.center_to_wheel],
+                                        [0.5, -np.sqrt(3)/2, self.center_to_wheel]])
 
         # (x, y, ω)
         self.position = [0, 0, 0]
