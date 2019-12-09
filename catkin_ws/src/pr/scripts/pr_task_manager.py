@@ -12,7 +12,7 @@ cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size = 10)
 def on_receive_joy(joy):
     state = rospy.get_param('/state/control_mode')
     if state == 'manual':
-        linear = Vector3(joy.axes[1], -joy.axes[0], 0)
+        linear = Vector3(-joy.axes[0], joy.axes[1], 0)
         angular = Vector3(0, 0, -joy.axes[2])
         cmd_vel = Twist(linear, angular)
         cmd_vel_pub.publish(cmd_vel)
