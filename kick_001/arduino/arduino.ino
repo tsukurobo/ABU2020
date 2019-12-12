@@ -1,3 +1,6 @@
+//ピン配置
+//センサはデジタルピンとGNDに繋ぐ
+
 //使い方
 //リセットボタンでスタンバイ
 //シリアルモニタでデータを入れると正転スタート
@@ -15,6 +18,9 @@
 uint8_t addr = 0x12;
 /*pin setting*/
 const int TOUCH_PIN = 7;
+const int SOLENOID_PIN = 9;
+/*other constants*/
+const int DELAY_TIME = 10;
 
 /*global varialbes*/
 int pw = 60; //power of moter (-100~100)
@@ -30,16 +36,16 @@ void setup(){
   pinMode(TOUCH_PIN, INPUT_PULLUP);
 
   //standing by mode
-  while(val==0){
+  do{
     motor.setSpeed(0);
     Serial.println("standing by");
-    
+
     val = Serial.available();
-    delay(10);
-  }
+    delay(DELAY_TIME);
+  }while(val==0);
 
   //normal ratation mode
-  while(touch==LOW){
+  do{
     motor.setSpeed(pw);
     enc = motor.encorder();
     touch = digitalRead(TOUCH_PIN);
@@ -48,28 +54,31 @@ void setup(){
     Serial.print('\t');
     Serial.print("encoder: "); Serial.println(enc);
 
-    val = Serial.available();
-    delay(10);
-  }
+    //val = Serial.available();
+    delay(DELAY_TIME);
+  }while(touch==LOW);
 
   //stopping mode
-  while(Serial.available()==val){
+  do{
     motor.setSpeed(0);
     Serial.print("stopping"); Serial.print('\t');
     Serial.print("encoder: "); Serial.println(enc);
 
     val = Serial.available();
-    delay(10);
-  }
+    delay(DELAY_TIME);
+  }while(Serial.available()==val);
 
   //reverse rotation mode
-  while(enc>0){
+  do{
     motor.setSpeed(-pw);
     enc = motor.encorder();
+    
     Serial.print("power: "); Serial.print(-pw);
     Serial.print('\t');
     Serial.print("encoder: "); Serial.println(enc);
-  }
+    
+    delay(DELAY_TIME);
+  }while(enc>0);
 
   //stopping mode
   while(1){
@@ -77,7 +86,7 @@ void setup(){
     Serial.println("finish"); //Serial.print('\t');
     //Serial.print("encoder: "); Serial.println(enc);
 
-    delay(10);
+    delay(DELAY_TIME);
   }
 }
 
