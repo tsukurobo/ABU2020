@@ -1,0 +1,15 @@
+<launch>
+
+  <rosparam command="load" file="$(find pr)/constant.yaml"/>
+  <rosparam command="load" file="$(find pr)/state.yaml"/>
+
+  <param name="/joy_node/dev" value="/dev/input/js0"/>
+
+  <node pkg="rviz" name="rviz" type="rviz"/>
+  <node pkg="joy" name="joy" type="joy_node"/>
+
+  <node pkg="pr" name="virtual_omni" type="pr_virtual_omni.py"/>
+  <node pkg="pr" name="task_manager" type="pr_task_manager.py"/>
+  <node pkg="pr" name="arduino_driver" type="pr_arduino_driver.py"/>
+
+</launch>
