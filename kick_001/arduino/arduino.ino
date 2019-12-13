@@ -34,6 +34,8 @@ void setup(){
   Wire.begin();
   Serial.begin(115200);
   pinMode(TOUCH_PIN, INPUT_PULLUP);
+  pinMode(SOLENOID_PIN, OUTPUT);
+  digitalWrite(SOLENOID_PIN, LOW);
 
   //standing by mode
   do{
@@ -79,6 +81,20 @@ void setup(){
     
     delay(DELAY_TIME);
   }while(enc>0);
+
+  //kicking standying by mode
+  do{
+    motor.setSpeed(0);
+    Serial.println("kicking standying by");
+
+    val = Serial.available();
+    delay(DELAY_TIME);
+  }while(Serial.available()==val);
+
+  //kicking mode
+  digitalWrite(SOLENOID_PIN, HIGH);
+  delay(500);
+  digitalWrite(SOLENOID_PIN,LOW);
 
   //stopping mode
   while(1){
