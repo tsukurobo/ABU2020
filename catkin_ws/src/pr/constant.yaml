@@ -5,5 +5,8 @@ const: {
     encoder_resolution: 4096,
     frequency: 100
   },
-  i2c_addr: [ 0x61, 0x22, 0x33 ]
+  i2c_addr: [ 0x61, 0x22, 0x33 ],
+  urg_x: -0.37,
+  urg_y: -0.1,
+  urg_rot: 3.1415
 }

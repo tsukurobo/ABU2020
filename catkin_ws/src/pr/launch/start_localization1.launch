@@ -1,0 +1,58 @@
+<launch>
+
+  <rosparam command="load" file="$(find pr)/constant.yaml"/>
+  <rosparam command="load" file="$(find pr)/state.yaml"/>
+
+  <arg name="arduino_port" value="/dev/ttyACM0"/>
+
+  <param name="/joy_node/dev" value="/dev/input/js0"/>
+
+  <node pkg="rosserial_python" name="serial_node"
+    type="serial_node.py" args="$(arg arduino_port)"/>
+  <node pkg="joy" name="joy" type="joy_node"/>
+
+  
+  <node pkg="pr" name="arduino_driver" type="pr_arduino_driver.py" output="screen"/>
+ 
+<node pkg="amcl" type="amcl" name="amcl">
+  <!-- Publish scans from best pose at a max of 10 Hz -->
+  <param name="odom_model_type" value="omni-corrected"/>
+  <param name="odom_alpha5" value="0.1"/>
+  <param name="transform_tolerance" value="0.1"/>
+  <param name="gui_publish_rate" value="10.0"/>
+  <param name="laser_max_beams" value="150"/>
+  <param name="min_particles" value="500"/>
+  <param name="max_particles" value="5000"/>
+  <param name="kld_err" value="0.05"/>
+  <param name="kld_z" value="0.99"/>
+  <param name="odom_alpha1" value="0.4"/>
+  <param name="odom_alpha2" value="0.9"/>
+  <!-- translation std dev, m -->
+  <param name="odom_alpha3" value="0.3"/>
+  <param name="odom_alpha4" value="0.9"/>
+  <param name="laser_z_hit" value="0.7128"/>
+  <param name="laser_z_short" value="0.1567"/>
+  <param name="laser_z_max" value="0.002"/>
+  <param name="laser_z_rand" value="0.1285"/>
+  <param name="laser_sigma_hit" value="0.2"/>
+  <param name="laser_lambda_short" value="0.3125"/>
+  <param name="laser_model_type" value="likelihood_field"/>
+  <!-- <param name="laser_model_type" value="beam"/> -->
+  <param name="laser_likelihood_max_dist" value="1.0"/>
+  <param name="update_min_d" value="0.20"/>
+  <param name="update_min_a" value="0.13"/>
+  <param name="odom_frame_id" value="odom"/>
+  <param name="resample_interval" value="1"/>
+  <param name="recovery_alpha_slow" value="0.001"/>
+  <param name="recovery_alpha_fast" value="0.1"/>
+</node>
+
+	<node pkg="urg_node" name="urg_node" type="urg_node">
+		<param name="frame_id" value="laser"/>
+	  <param name="angle_min" value="-1.57196"/>
+	  <param name="angle_max" value="1.57196"/>
+		<param name="ip_address" value="172.16.0.10"/>
+	</node>
+	
+	<node pkg="map_server" name="map_server" type="map_server" args="$(find pr)/maps/map_corridor.yaml"/>
+</launch>
