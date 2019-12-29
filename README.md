@@ -1,0 +1,4 @@
+# pr_alternative
+src/prがpr用のROSパッケージ.
+src/pr/launch内のstart_localization1.launchとstart_localization2.launchを順に起動させるとロボットが手動走行できるようになるでしょう.
+map座標系を基準として動作を行います.
