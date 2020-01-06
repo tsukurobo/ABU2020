@@ -1,0 +1,8 @@
+<launch>
+    <rosparam command="load" file="$(find pr)/constant.yaml"/>
+    <rosparam command="load" file="$(find pr)/state.yaml"/>
+
+    <node pkg="pr" name="tfListener" type="pr_tf_listener.py" output="screen"/>
+    <node pkg="pr" name="task_manager" type="pr_task_manager.py"/>
+    
+</launch>
