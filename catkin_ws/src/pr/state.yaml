@@ -1,3 +1,7 @@
 state: {
   control_mode: "manual"
 }
+mode: {
+  use_pf: 1,
+  use_kf: 1
+}
