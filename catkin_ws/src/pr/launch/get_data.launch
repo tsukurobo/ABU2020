@@ -1,0 +1,29 @@
+<launch>
+
+  <rosparam command="load" file="$(find pr)/constant.yaml"/>
+  <rosparam command="load" file="$(find pr)/state.yaml"/>
+  <arg name="arduino_port" value="/dev/ttyACM0"/>
+  
+
+  <param name="/joy_node/dev" value="/dev/input/js0"/>
+
+  <node pkg="joy" name="joy" type="joy_node"/>
+
+  <node pkg="pr" name="arduino_driver" type="pr_arduino_driver.py" output="screen"/>
+ 
+  <node pkg="pr" name="task_manager" type="pr_task_manager.py"/>
+
+  <node pkg="urg_node" name="urg_node" type="urg_node">
+    <param name="frame_id" value="laser"/>
+    <param name="angle_min" value="-1.047167"/>
+    <param name="angle_max" value="1.047167"/>
+    <param name="ip_address" value="172.16.0.10"/>
+  </node>
+
+  <node pkg="rosserial_python" name="serial_node"
+    type="serial_node.py" args="$(arg arduino_port)"/>
+	
+  <node pkg="rosserial_python" name="arduino_gyro"
+    type="serial_node.py" args="/dev/ttyACM1"/>
+
+</launch>

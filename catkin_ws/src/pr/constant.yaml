@@ -1,12 +1,21 @@
 const: {
   spec: {
-    center_to_wheel: 0.322,
-    wheel_radius: 0.0508,
-    encoder_resolution: 4096,
+    center_to_wheel: 0.320,
+    wheel_radius: 0.050,
+    encoder_resolution: 1024,
     frequency: 100
   },
+  kf: {
+    interval: 0.1,
+    update_rotation: 0.001,
+    alpha1: 0.01,
+    alpha2: 0.02,
+    initial_sigma_rot: 0.068,
+    sigma_gyro: 0.01
+  },
   i2c_addr: [ 0x61, 0x22, 0x33 ],
-  urg_x: -0.37,
+  urg_x: -0.38,
   urg_y: -0.1,
-  urg_rot: 3.1415
+  urg_yaw: 3.1415,
+  urg_roll: 3.1415
 }
