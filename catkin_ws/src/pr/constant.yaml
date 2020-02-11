@@ -13,6 +13,24 @@ const: {
     initial_sigma_rot: 0.068,
     sigma_gyro: 0.01
   },
+  dwa: {
+     max_vel_x: 1.0,
+     max_vel_y: 1.0,
+     ctrl_period: 0.5,
+     sample_rate: 25,
+     coeff_obs: 0.4,
+     coeff_vel: 0.1,
+     coeff_dist: 0.5,
+     skip_wp: 40,
+     kp: 0.3
+  },
+  smp: {
+     linear_kp: 0.8,
+     linear_kd: 0.3,
+     angular_kp: 0.5,
+     max_lin_vel: 1.0,
+     max_ang_vel: 1.0
+  },
   i2c_addr: [ 0x61, 0x22, 0x33 ],
   urg_x: -0.38,
   urg_y: -0.1,

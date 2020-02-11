@@ -3,17 +3,17 @@
 
 import rospy
 import tf
-from std_msgs.msg import Float32
+from geometry_msgs.msg import Vector3 
 
 rospy.init_node("pr_tf_listener")
 
 tf_listener = tf.TransformListener()
 
-yawPub = rospy.Publisher("yaw_base2map", Float32, queue_size = 10)
+posPub = rospy.Publisher("current_pos", Vector3, queue_size = 10)
 
 #rospy.sleep(5)
 
-yaw = Float32()
+pos = Vector3()
 
 r = rospy.Rate(50)
 
@@ -26,8 +26,10 @@ while not rospy.is_shutdown():
         continue
 
     rpy = tf.transformations.euler_from_quaternion([rot[0],rot[1],rot[2],rot[3]])
-    yaw.data = rpy[2]
+    pos.z = rpy[2]
+    pos.x = trans[0]
+    pos.y = trans[1]
 
-    yawPub.publish(yaw)
+    posPub.publish(pos)
 
     r.sleep()

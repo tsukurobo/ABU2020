@@ -11,13 +11,13 @@ class VirtualOmni:
                 rospy.Publisher('raw_encoder', RawEncoder, queue_size = 10)
         self.raw_power_sub = \
                 rospy.Subscriber('raw_power', RawPower, self.on_receive_power)
-        frequency = float(rospy.get_param('/const/spec/frequency'))
+        frequency = 200#float(rospy.get_param('/const/spec/frequency'))
         self.rate = rospy.Rate(frequency)
 
     def on_receive_power(self, power_msg):
-        self.enc_data.e1 = -power_msg.p1
-        self.enc_data.e2 = -power_msg.p2
-        self.enc_data.e3 = -power_msg.p3
+        self.enc_data.e1 = 16*float(power_msg.p1)/100.0
+        self.enc_data.e2 = 16*float(power_msg.p2)/100.0
+        self.enc_data.e3 = 16*float(power_msg.p3)/100.0
 
     def start(self):
         while not rospy.is_shutdown():

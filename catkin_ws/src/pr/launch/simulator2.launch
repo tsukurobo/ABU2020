@@ -1,0 +1,7 @@
+<launch>
+	<rosparam command="load" file="$(find pr)/constant.yaml"/>
+	<node pkg="pr" name="tf_listener" type="pr_tf_listener.py"/>
+	<node pkg="pr" name="simple_motion_planner" type="pr_simple_motion_planner.py" output="screen"/>
+	<node pkg="map_server" name="map_server" type="map_server" args="$(find pr)/maps/map_corridor.yaml"/>
+
+</launch>

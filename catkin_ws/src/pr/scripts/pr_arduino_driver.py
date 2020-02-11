@@ -5,6 +5,7 @@ import rospy
 import tf
 from geometry_msgs.msg import Twist
 from pr.msg import RawPower, RawEncoder
+from geometry_msgs.msg import Vector3
 from std_msgs.msg import Float32
 
 import numpy as np
@@ -68,7 +69,7 @@ class ArduinoDriver:
         self.raw_power_pub = rospy.Publisher('raw_power', RawPower, queue_size = 10)
         rospy.Subscriber('raw_encoder', RawEncoder, self.on_receive_delta_enc)
         rospy.Subscriber('cmd_vel', Twist, self.on_receive_cmd_vel)
-        rospy.Subscriber('yaw_base2map', Float32, self.on_receive_yaw)
+        rospy.Subscriber('current_pos', Vector3, self.on_receive_yaw)
         rospy.Subscriber("gyro", Float32, self.on_receive_gyro)
 
 
@@ -108,7 +109,7 @@ class ArduinoDriver:
         self.velocity = [cmd_vel.linear.x, cmd_vel.linear.y, cmd_vel.angular.z]
 
     def on_receive_yaw(self, th):
-        self.yaw = th.data
+        self.yaw = th.z
         #rospy.loginfo(self.yaw)
 
     def on_receive_gyro(self, gyrot):
