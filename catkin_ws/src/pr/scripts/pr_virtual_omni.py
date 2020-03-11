@@ -18,6 +18,7 @@ class VirtualOmni:
         self.enc_data.e1 = 16*float(power_msg.p1)/100.0
         self.enc_data.e2 = 16*float(power_msg.p2)/100.0
         self.enc_data.e3 = 16*float(power_msg.p3)/100.0
+        self.enc_data.e4 = 16*float(power_msg.p4)/100.0
 
     def start(self):
         while not rospy.is_shutdown():

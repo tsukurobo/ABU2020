@@ -12,6 +12,6 @@
   <!--node pkg="pr" name="task_manager" type="pr_task_manager.py"/>-->
   <node pkg="tf" name="static_transform_publisher" type="static_transform_publisher" args="0 0 0 0 0 0 map odom 10"/>
   <node pkg="pr" name="arduino_driver" type="pr_arduino_driver.py"/>
-  
+  <node pkg="pr" name="task_manager" type="pr_task_manager.py"/>
 
 </launch>

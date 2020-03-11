@@ -35,13 +35,14 @@ int main(int argc, char **argv){
   boost::shared_ptr<nav_msgs::OccupancyGrid const> mapptr;
   ros::Rate rate(5);
   double time_pre = 0.0;
+  int range;
 
+  nh.getParam("/const/LF_creator/range", range);
   mapptr = ros::topic::waitForMessage<nav_msgs::OccupancyGrid>("map");
   map = *mapptr;
-
   time_pre = ros::Time::now().toSec();
-  convertToLFMap(&map, 20);//二つ目のパラメータで、尤度を設定する範囲を決める
-  std::cout << "time required: " << ros::Time::now().toSec() - time_pre << std::endl; 
+  convertToLFMap(&map, range);//二つ目のパラメータで、尤度を設定する範囲を決める
+  std::cout << "LF_creator: time required: " << ros::Time::now().toSec() - time_pre << std::endl;
 
   while(ros::ok()){
     map_pub.publish(map);

@@ -8,8 +8,7 @@
     
   <node pkg="rosserial_python" name="serial_node"
     type="serial_node.py" args="$(arg arduino_port)"/>
-    
-  <node pkg="rosserial_python" name="arduino_gyro"
-    type="serial_node.py" args="/dev/ttyACM1"/>
+  <node pkg="rosserial_python" name="arduino_gyro" type="serial_node.py" args="/dev/ttyACM1"/>
+
 
 </launch>

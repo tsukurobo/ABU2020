@@ -1,9 +1,10 @@
 const: {
   spec: {
-    center_to_wheel: 0.320,
+    center_to_wheel: 0.460,
     wheel_radius: 0.050,
     encoder_resolution: 1024,
-    frequency: 100
+    frequency: 100,
+    max_speed: 0.7
   },
   kf: {
     interval: 0.1,
@@ -17,12 +18,13 @@ const: {
      max_vel_x: 1.0,
      max_vel_y: 1.0,
      ctrl_period: 0.5,
-     sample_rate: 25,
+     sample_rate: 41,
      coeff_obs: 0.4,
      coeff_vel: 0.1,
      coeff_dist: 0.5,
-     skip_wp: 40,
-     kp: 0.3
+     skip_wp: 20,
+     kp: 0.5,
+     waypoint_range: 0.25
   },
   smp: {
      linear_kp: 0.8,
@@ -31,9 +33,12 @@ const: {
      max_lin_vel: 1.0,
      max_ang_vel: 1.0
   },
-  i2c_addr: [ 0x61, 0x22, 0x33 ],
-  urg_x: -0.38,
-  urg_y: -0.1,
-  urg_yaw: 3.1415,
-  urg_roll: 3.1415
+  LF_creator: {
+     range: 25
+  },
+  i2c_addr: [ 0x61, 0x22, 0x33, 0x12],
+  urg_x: -0.44,
+  urg_y: -0.045,
+  urg_yaw: 1.57075,
+  urg_roll: 0
 }

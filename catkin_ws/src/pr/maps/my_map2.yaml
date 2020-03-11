@@ -1,0 +1,7 @@
+image: NHK_map2.png
+resolution: 0.010000
+origin: [-6.0, -7.50 ,0.0]
+negate: 0
+occupied_thresh: 0.9
+free_thresh: 0.196
+
