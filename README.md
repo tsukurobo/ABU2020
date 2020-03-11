@@ -18,6 +18,9 @@ pr_arduino_driver.py
 pr_tf_listener.py  
 pr_task_manager.py  
 pr_virtual_omni.py  
+likelyhood_field_creator  
+global_planner  
+motion_planner  
   
 pr_arduino_driver.py: arduinoへのモーター回転速度指令の伝達、ジャイロセンサを用いたカルマンフィルタの実行、エンコーダを用いたオドメトリの計算を行う。  
 
@@ -29,13 +32,13 @@ pr_arduino_driver.py: arduinoへのモーター回転速度指令の伝達、ジ
 	sub
 	[raw_encoder] (pr/RawEncoder): int16の要素を３つもつ。伊勢モードラに接続させたエンコーダからのデータが格納される。
 	[cmd_vel] (geometry_msgs/Twist): ロボットの並進速度と角速度。
-	[yaw_base2map] (std_msgs/Float32): map座標系から見たロボットのヨー角。単位はラジアン。-πからπの値。
+	[current_pos] (geometry_msgs/Vector3): map座標系から見たロボットの姿勢。回転角度は-πからπの値を取る。
 	[gyro] (std_msgs/Float32): ジャイロセンサから得られた、odom座標系から見たロボットのヨー角(の推定値)。単位は°。任意の実数値をとる。  
   
-pr_tf_listener.py: tf情報を読み取り、/mapから見た/base_linkのyaw角を取得、それをyaw_base2mapにパブリッシュする。  
+pr_tf_listener.py: tf情報を読み取り、/mapから見た/base_linkのyaw角を取得、それをcurrent_posにパブリッシュする。  
 
 	pub
-	[yaw_base2map] (std_msgs/Float32): 前述した通り。
+	[current_pos] (geometry_msgs/Vector3): 前述した通り。
 	sub
 	[tf]: TransForm
 	
@@ -52,7 +55,32 @@ pr_task_manager.py: joyトピックをサブスクライブし、joystickの操�
 	[raw_encoder] (pr/RawEncoder): 省略。
 	sub
 	[raw_power] (pr/RawPower): 省略。
+ 
+ likelyhood_field_creator: 占有格子地図から尤度場(の様なもの)を生成する。これは障害物回避の為の動作計画を決定する際に用いる。
 
+ 	pub
+	[LFMap] (nav_msgs/OccupancyGrid): 地図データをもとに生成された尤度場データ。
+	sub
+	[map] (nav_msgs/OccupancyGrid): map_serverからパブリッシュされる、地図データ(占有格子地図)。
+ 
+ global_planner: A*アルゴリズムを用いて現在地からゴールまでの最短経路を探索する。
+
+	pub
+	[path] (nav_msgs/Path): A*アルゴリズムにより求められた最短経路。
+	sub
+	[goal] (geometry_msgs/Vector3): ゴール地点の(map座標系での)座標とそこでのロボットの回転角度を格納。
+	[map] (nav_msgs/OccupancyGrid): 地図データ。障害物を避けるような経路を探索するために必要。
+	[current_pos] (geometry_msgs/Vector3): 省略。
+ 
+ motion_planner: Dynamic Window Approachを用いて、経路追従と障害物回避を行えるような速度コマンドを出力する。
+ 
+ 	pub
+	[cmd_vel] (geometry_msgs/Twist): 出力された速度コマンド。メッセージには並進方向速度と角速度が格納されている。
+	sub
+	[path] (nav_msgs/Path): 省略。
+	[LFMap] (nav_msgs/OccupancyGrid): 省略。
+	[current_pos] (geometry_msgs/Vector3): 省略。
+ 
 # launchファイル
 controller.launch  
 get_data.launch  
