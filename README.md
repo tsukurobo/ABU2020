@@ -32,10 +32,10 @@ pr_arduino_driver.py: arduinoへのモーター回転速度指令の伝達、ジ
 	sub
 	[raw_encoder] (pr/RawEncoder): int16の要素を３つもつ。伊勢モードラに接続させたエンコーダからのデータが格納される。
 	[cmd_vel] (geometry_msgs/Twist): ロボットの並進速度と角速度。
-	[current_pos] (geometry_msgs/Vector3): map座標系から見たロボットの姿勢。回転角度は-πからπの値を取る。
+	[current_pos] (geometry_msgs/Vector3): map座標系から見たロボットの姿勢(x,y,θ)。回転角度は-πからπの値を取る。
 	[gyro] (std_msgs/Float32): ジャイロセンサから得られた、odom座標系から見たロボットのヨー角(の推定値)。単位は°。任意の実数値をとる。  
   
-pr_tf_listener.py: tf情報を読み取り、/mapから見た/base_linkのyaw角を取得、それをcurrent_posにパブリッシュする。  
+pr_tf_listener.py: tf情報を読み取り、/mapから見た/base_linkのx座標、y座標、yaw角を取得、それをcurrent_posにパブリッシュする。  
 
 	pub
 	[current_pos] (geometry_msgs/Vector3): 前述した通り。
@@ -80,7 +80,10 @@ pr_task_manager.py: joyトピックをサブスクライブし、joystickの操�
 	[path] (nav_msgs/Path): 省略。
 	[LFMap] (nav_msgs/OccupancyGrid): 省略。
 	[current_pos] (geometry_msgs/Vector3): 省略。
- 
+  
+# ノード構成(Dynamic Window Approachを使用した自動走行と自己位置推定を行う場合)
+![画像](https://github.com/tsukurobo/ABU2020/blob/master/IMG_E0185.JPG)
+
 # launchファイル
 controller.launch  
 get_data.launch  
