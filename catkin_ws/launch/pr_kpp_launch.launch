@@ -1,0 +1,13 @@
+<launch>
+	<node pkg="joy" name="joy_node" type="joy_node"> </node>
+	<node pkg="pr_kpp_test_joycon" name="pr_kpp_joucon_node" type="pr_kpp_joycon_node"> </node>
+
+	<node pkg="pr_kick" name="kick_node" type="kick_node"> </node>
+	<node pkg="pr_pick_pass" name="pick_pass_node" type="pick_pass_node"> </node>
+	<node pkg="rosserial_python" type="serial_node.py" name="serial_node0">
+		<param name="port" value="/dev/ttyACM0"/>
+	</node>
+	<node pkg="rosserial_python" type="serial_node.py" name="serial_node1">
+		<param name="port" value="/dev/ttyACM1"/>
+	</node>
+</launch>
