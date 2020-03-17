@@ -1,2 +1,2 @@
-Int32 pick
-Int32 launch
+int32 pick
+int32 launch

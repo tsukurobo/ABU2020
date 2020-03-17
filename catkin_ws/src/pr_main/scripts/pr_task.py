@@ -4,11 +4,14 @@ import rospy
 from std_msgs import Int32
 from sensor_msgs import Joy
 
+#import custom messages
 from pr_msg.msg import PrMsg
+from pr_msg.msg import PpMsg
+from pr_msg.msg import KickMsg
 
 buf = PrMsg()
-bufpp = Int32
-bufkick = Int32
+bufpp = PpMsg()
+bufkick = KickMsg()
 isfire = int()
 
 
@@ -42,18 +45,21 @@ def waitjob(job):
 
 def _main():
     global buf
+    global bufpp
+    global bufkick
     global isfire
 
     r = rospy.Rate(10)
+
     pub = rospy.Publisher('pr_main_order', PrMsg, queue_size=None)
     sub = rospy.Subscriber('pr_main_order', PrMsg, cbf)
     subjoy = rospy.Subscriber('joy', Joy, cbjoy)
-    pubpp = rospy.Publisher('pp_order', Int32, queue_size=None)
-    subpp = rospy.Subscriber('pp_order', Int32, cbpp)
-    pubkick = rospy.Publisher('pk_order', Int32, queue_size=None)
-    subkick = rospy.Subscriber('pk_order', Int32, cbkick)
+    pubpp = rospy.Publisher('pp_tpc', PpMsg, queue_size=None)
+    subpp = rospy.Subscriber('pp_tpc', PpMsg, cbpp)
+    pubkick = rospy.Publisher('kick_tpc', KickMsg, queue_size=None)
+    subkick = rospy.Subscriber('kick_tpc', KickMsg, cbkick)
 
-    rospy.init_node('pr_pass')
+    rospy.init_node('pr_task')
 
     while not rospy.is_shutdown():
         #pick ball
@@ -66,10 +72,13 @@ def _main():
                 pass
 
             #pick up
-            bufpp.data = 1
+            bufpp.pick = 1
             pubpp.publish(bufpp)
-            while bufpp.data[1] == 1:
+            while bufpp.pick == 1:
                 r.sleep()
+            if bufpp.pick < 0:
+                #error
+                pass
 
             #move to pass point
             buf.moveto = 'pass'
@@ -95,21 +104,43 @@ def _main():
             pub.publish(buf)
 
         #kick ball
-        if buf.kick_ball == 1 and isfire == 1:
+        if buf.kick_ball == 1:
+            #move to pick up point
+            buf.moveto = 'kick'
+            pub.publish(buf)
+            if waitjob('moveto') == 1:
+                #error
+                pass
+
             #kick the ball
-            bufkick.data = 1
+            while isfire == 0:  #wait for input from joy
+                pass
+            bufkick.launch = 1
             pubkick.publish(bufkick)
-            while bufkick == 1:
+            while bufkick.launch == 1:
                 r.sleep()
+            if bufkick.launch < 0:
+                #error
+                pass
+
+            #reload anyo
+            bufkick.wind = 1
+            pubkick.publish(bufkick)
+            while bufkick.launch == 1:
+                r.sleep()
+            if bufkick < 0:
+                #error
+                pass
 
             #finish
             buf.kick_ball = 0
             pub.publish(buf)
         
+        #loading kick ball
+        if buf.load_ball == 1:
+            pass
 
         r.sleep()
-        
-            
         
 if __name__ == '__main__':
     try:

@@ -1,2 +1,2 @@
-Int32 wind
-Int32 launch
+int32 wind
+int32 launch
