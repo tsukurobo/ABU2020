@@ -7,23 +7,21 @@ from pr_msg.msg import PrMsg
 #definitions and initalization of variables
 order_buf = PrMsg()
 dict_order = vars(order_buf)
-#dict_order = {}
-#for key in order_buf.__dict__.keys():
-#    dict_order[key] = 0
 
 #definitions of pubkisher 
 pub = rospy.Publisher("pr_main_order", PrMsg, queue_size=None)
 
 #callback function of msg
 def pr_cb_msg(getmsg):
-    pass
+    global order_buf = getmsg
 
 # for waiting a job
 def waitjob(job):
+    global order_buf
     r = rospy.Rate(10)
     while getattr(order_buf, job) == 1:
         r.sleep()
-    if getattr(order_buf, job) == 2:
+    if getattr(order_buf, job) == 0:
         return 0
     else:
         return 1
@@ -45,7 +43,7 @@ def _main():
     while not rospy.is_shutdown():
         #pick up pass ball and throw them to TR (x4)
         numpb = 0
-        while numpb < 4:
+        while step == 0 and numpb < 4:
             order_buf.pick_ball = 1
             pub.publish(order_buf)
             if waitjob("pick_ball") == 1:
@@ -64,7 +62,7 @@ def _main():
 
         #load kick ball (x3)
         numkb = 0
-        if step == 1: while numkb < 3:
+        while step == 1 and numkb < 3:
             order_buf.load_ball = 1
             pub.publish(order_buf)
             if waitjob("load_ball") == 1:
@@ -75,7 +73,7 @@ def _main():
         step=2
 
         #kick the ball (x3)
-        if step == 2: while numkb > 0:
+        while step == 2 and numkb > 0:
             order_buf.kick_ball = 1
             pub.publish(order_buf)
             if waitjob("kick_ball") == 1:
