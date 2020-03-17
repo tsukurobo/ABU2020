@@ -1,0 +1,9 @@
+<launch>
+	<node pkg="pr_kick" name="kick_node" type="kick_node">
+		<param name="FREQ" value="10"/>
+		<param name="POW"  value="255"/>
+	</node>
+	<node pkg="rosserial_python" type="serial_node.py" name="serial_node0">
+		<param name="port" value="/dev/ttyACM0"/>
+	</node>
+</launch>
