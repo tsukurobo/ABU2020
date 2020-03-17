@@ -19,6 +19,7 @@ const int MAIN_DELAY = 10;   //[millisec]
 int pw = 0; //power of moter (-255~255)
 int order_wind   = 0; //order of wind rope
 int order_launch = 0; //order of kick
+int delay_time = 0; //delay time of solenoid on/off [milli sec]
 
 //function prottype
 void callback(const std_msgs::Int16MultiArray& msg);
@@ -46,8 +47,8 @@ void setup(){
   //debug
   //nh.advertise(pub_d);
 
-  data.data_length = 2;
-  data.data = (int16_t*)malloc(sizeof(int16_t)*2);
+  data.data_length = 3;
+  data.data = (int16_t*)malloc(sizeof(int16_t)*3);
   data.data[0] = 0;
   data.data[1] = 0;
   
@@ -111,20 +112,30 @@ RESET:
 }
 
 void launching(){
+  //value of touch sensor (OFF:LOW ON:HIGH) 
+  bool touch;
+  
   nh.spinOnce();
   if(order_launch<0) goto RESET;
 
-  //debug.data = 0;
-  //pub_d.publish(&debug);
+  touch = digitalRead(TOUCH_PIN);
 
-  digitalWrite(SOLENOID_PIN,HIGH);
+  while((order_launch>0) && (touch==HIGH)){
+    digitalWrite(SOLENOID_PIN,HIGH);
+    delay(delay_time);
+    digitalWrite(SOLENOID_PIN,LOW);
+    delay(delay_time*9);
 
-  if(digitalRead(TOUCH_PIN)==LOW){
-    data.data[1] = 0;
-    pub.publish(&data);
-    //debug.data = 1;
-    //pub_d.publish(&debug);
+    touch = digitalRead(TOUCH_PIN);
+
+    if(digitalRead(TOUCH_PIN)==LOW){
+      data.data[1] = 0;
+      pub.publish(&data);
+    }
+    
+    nh.spinOnce();
   }
+  
 RESET:
 ;
 }
@@ -134,4 +145,5 @@ void callback(const std_msgs::Int16MultiArray& msg){
   order_wind   = msg.data[0];
   order_launch = msg.data[1];
   pw           = msg.data[2];
+  delay_time   = msg.data[3];
 }
