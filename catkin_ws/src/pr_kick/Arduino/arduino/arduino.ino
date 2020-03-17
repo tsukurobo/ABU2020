@@ -101,7 +101,7 @@ void winding(){
     motor.setSpeed(-pw);
     enc = motor.encorder();
     delay(MAIN_DELAY);
-  }while(enc>0);
+  }while(enc<0);
 
   //finish
   data.data[0] = 0;
@@ -120,7 +120,8 @@ void launching(){
 
   touch = digitalRead(TOUCH_PIN);
 
-  while((order_launch>0) && (touch==HIGH)){
+  while(touch==HIGH){
+    if(order_launch<0) goto RESET;
     digitalWrite(SOLENOID_PIN,HIGH);
     delay(delay_time);
     digitalWrite(SOLENOID_PIN,LOW);
@@ -128,7 +129,7 @@ void launching(){
 
     touch = digitalRead(TOUCH_PIN);
 
-    if(digitalRead(TOUCH_PIN)==LOW){
+    if(touch==LOW){
       data.data[1] = 0;
       pub.publish(&data);
     }
