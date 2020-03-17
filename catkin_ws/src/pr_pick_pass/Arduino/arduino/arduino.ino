@@ -5,54 +5,68 @@
 #include <ros.h>
 #include <std_msgs/Int16MultiArray.h>
 //debug
-#include <std_msgs/Float64.h>
+//#include <std_msgs/Float64.h>
 
 //constant
-const uint8_t ADDR_PICK = 0x12; //pick up motor address of AVR
+const uint8_t ADDR_PICK = 0x13; //pick up motor address of AVR
 const uint8_t ADDR_PASS = 0x14; //pass motor address of AVR
-const int TOUCH_PIN    = 5; //touch sensor pin
-const int SOLENOID_PIN = 6; //solenoid pin
-const int VALVE_PIN_1  = 7; //valve pin
-const int VALVE_PIN_2  = 8; //valve pin
+const int TOUCH_PIN    = 2;  //touch sensor pin
+const int SOLENOID_PIN = 6;  //solenoid pin
+const int VALVE_PIN_1  = 10; //valve pin
+const int VALVE_PIN_2  = 12; //valve pin
 const int ENC_PER_ROT = 4048; //[enc_step/360deg]
 const int MAIN_DELAY  = 10;   //[millisec]
 
 //global variable
-int order_wind   = 0; //order of wind rope
 int order_pick   = 0; //order of pick up ball
-int order_launch = 0; //order of launch ball
-int pw_wind;  //motor power of wind rope (-255~255)
-int pw_lower = 40; //motor power of lower hand (-255~255)
-int pw_raise = 60; //motor power of raise ball (-255~255)
-int target_deg = 120; //degree of lower hand for pick up[deg]
+int order_launch = 0; //order of launch ball and wind rope
+int pw_lower = 0; //motor power of lower hand (-255~255)
+int pw_raise = 0; //motor power of raise ball (-255~255)
+int pw_wind  = 0; //motor power of wind rope (-255~255)
+int target_deg_1 = 0; //degree of lower hand for pick up[deg]
+int target_deg_2 = 0; //degree of lower hand for pick up[deg]
+int delay_time = 0; //delay time of solonoid on [milli sec]
 
 //function prottype
 void callback(const std_msgs::Int16MultiArray& msg);
-void picking_up(); //watch out enc condition///////////////////////////////////
-void winding(); //watch out enc condition//////////////////////////////////////
+void picking_up();
+void launching();
+
 
 //init
 ros::NodeHandle nh;
-ros::Subscriber<std_msgs::Int16MultiArray>  sub("pp_tpc",&callback);
+ros::Subscriber<std_msgs::Int16MultiArray>  sub("pp_order",&callback);
+std_msgs::Int16MultiArray data;
+ros::Publisher pub("pp_fin",&data);
+
 IseMotorDriver mot_pick(ADDR_PICK);
 IseMotorDriver mot_pass(ADDR_PASS);
 
 //debug
-std_msgs::Float64 data;
-ros::Publisher pub("debug_tpc",&data);
+//std_msgs::Float64 debug;
+//ros::Publisher pub("debug_tpc",&debug);
   
 void setup(){
   Wire.begin(); 
+  
   //init node
   nh.initNode();
   nh.subscribe(sub);
-  //debug
   nh.advertise(pub);
+  //debug
+  //nh.advertise(pub);
+
+  data.data_length = 2;
+  data.data = (int16_t*)malloc(sizeof(int16_t)*2);
+  data.data[0] = 0;
+  data.data[1] = 0;
+     
   //init pin
   pinMode(TOUCH_PIN, INPUT_PULLUP);
   pinMode(SOLENOID_PIN, OUTPUT);
   pinMode(VALVE_PIN_1, OUTPUT);
   pinMode(VALVE_PIN_2, OUTPUT);
+  
   //init actuator
   digitalWrite(SOLENOID_PIN, LOW);
   digitalWrite(VALVE_PIN_1, LOW);
@@ -63,96 +77,165 @@ void setup(){
 
 void loop(){
   nh.spinOnce();
-    
-  //wind rope
-  if(order_wind==1) winding();
-  
-  //pick up ball
+
+  //pick up
   if(order_pick==1) picking_up();
-  
-  //launch ball
-  if(order_launch==1){
-    //launch ball
-    digitalWrite(SOLENOID_PIN, HIGH);
-    //reset valve
-    digitalWrite(VALVE_PIN_1, LOW);
-    digitalWrite(VALVE_PIN_2, LOW);
-  }else{
-    digitalWrite(SOLENOID_PIN, LOW);
-  }
-    
+
+  //launch
+  if(order_launch==1) launching();
+
   delay(MAIN_DELAY); 
 }
 
 //pick up
 void picking_up(){
-  long enc = 0; //value of encoder [step];
+  //value of touch sensor (OFF:LOW ON:HIGH) 
+  long enc = 0;
+
+  //タイムラグ分の処理を入れる
+
+  //init this function
+  nh.spinOnce();
+  if(order_pick<0) goto RESET;
 
   //open hand
-  digitalWrite(VALVE_PIN_1, HIGH);
-  digitalWrite(VALVE_PIN_2, LOW);
-  
+  hand_open();
+
   //lower hand
   do{
     nh.spinOnce();
+    if(order_pick<0) goto RESET;
+
     mot_pick.setSpeed(pw_lower);
     enc = mot_pick.encorder();
     delay(MAIN_DELAY);
-  }while(target_deg > enc);
-  mot_pick.setSpeed(0);
+  }while(target_deg_1 > enc);
 
+  mot_pick.setSpeed(0);
+  
   //hold hand
-  digitalWrite(VALVE_PIN_1, LOW);
-  digitalWrite(VALVE_PIN_2, HIGH);
-    
+  hand_hold();
+
+  delay(200);
+  
   //raise hand
   do{
     nh.spinOnce();
+    if(order_pick<0) goto RESET;
+
     mot_pick.setSpeed(pw_raise);
     enc = mot_pick.encorder();
     delay(MAIN_DELAY);
+  }while(enc > target_deg_2);
 
-  }while(enc > 0);
   mot_pick.setSpeed(0);
 
   //open hand
-  digitalWrite(VALVE_PIN_1, HIGH);
-  digitalWrite(VALVE_PIN_2, LOW);
+  hand_open();
+  
+  data.data[0] = 0;
+  pub.publish(&data);
+RESET:
+;
 }
 
-//winding////////////////////////////////////////////////////////////
-void winding(){
+//launch
+void launching(){
   //value of touch sensor (OFF:LOW ON:HIGH) 
-  long enc = 0; //value of encoder [step];
+  long enc = 0;
 
-  //normal rotation
+  //タイムラグ分の処理を入れる
+
+  //init this function
+  nh.spinOnce();
+  if(order_launch<0) goto RESET;
+
+  //lower hand
   do{
     nh.spinOnce();
-    mot_pass.setSpeed(pw_wind);
-    enc = mot_pass.encorder();
+    if(order_launch<0) goto RESET;
+
+    mot_pick.setSpeed(pw_lower);
+    enc = mot_pick.encorder();
     delay(MAIN_DELAY);
-  }while(digitalRead(TOUCH_PIN) == LOW);
+  }while(target_deg_1 > enc);
   
-  //reverse rotation
+  mot_pick.setSpeed(0);
+
+  //launch ball  
+  while(digitalRead(TOUCH_PIN) == LOW){
+    nh.spinOnce();
+    if(order_launch<0) goto RESET;
+    digitalWrite(SOLENOID_PIN,HIGH);
+    delay(delay_time);
+    digitalWrite(SOLENOID_PIN,LOW);
+    delay(delay_time*9);
+  }
+
+  delay(500);
+  
+  //wind rope
   do{
     nh.spinOnce();
+    if(order_launch<0) goto RESET;
+
+    mot_pass.setSpeed(pw_wind);
+    delay(MAIN_DELAY);
+  }while(digitalRead(TOUCH_PIN) == HIGH);
+  
+  do{
+    nh.spinOnce();
+    if(order_launch<0) goto RESET;
+
     mot_pass.setSpeed(-pw_wind);
     enc = mot_pass.encorder();
     delay(MAIN_DELAY);
   }while(enc>0);
 
-  //finish
   mot_pass.setSpeed(0);
+  
+  //raise hand
+  do{
+    nh.spinOnce();
+    if(order_launch<0) goto RESET;
 
+    mot_pick.setSpeed(pw_raise);
+    enc = mot_pick.encorder();
+    delay(MAIN_DELAY);
+  }while(enc > target_deg_2);
+
+  mot_pick.setSpeed(0);
+
+  data.data[1] = 0;
+  pub.publish(&data);
+RESET:
+;
 }
 
-//ros callback function////////////////////////////////////////////////
+//open hand
+void hand_open(){
+  digitalWrite(VALVE_PIN_1, LOW);
+  digitalWrite(VALVE_PIN_2, LOW);
+  digitalWrite(VALVE_PIN_1, HIGH);
+  digitalWrite(VALVE_PIN_2, LOW);
+}
+
+//hold hand
+void hand_hold(){
+  digitalWrite(VALVE_PIN_1, LOW);
+  digitalWrite(VALVE_PIN_2, LOW);
+  digitalWrite(VALVE_PIN_1, LOW);
+  digitalWrite(VALVE_PIN_2, HIGH);
+}
+
+//ros callback function
 void callback(const std_msgs::Int16MultiArray& msg){
-  order_wind   = msg.data[0];
-  order_pick   = msg.data[1];
-  order_launch = msg.data[2];
-  pw_wind      = msg.data[3];
-  pw_lower     = msg.data[4];
-  pw_raise     = msg.data[5];
-  target_deg   = msg.data[6];
+  order_pick   = msg.data[0];
+  order_launch = msg.data[1];
+  pw_lower     = msg.data[2];
+  pw_raise     = msg.data[3];
+  pw_wind      = msg.data[4];
+  target_deg_1 = msg.data[5];
+  target_deg_2 = msg.data[6];
+  delay_time   = msg.data[7];
 }

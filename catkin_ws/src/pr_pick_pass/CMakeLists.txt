@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  pr_kpp_test_joycon
 )
 
 ## System dependencies are found with CMake's conventions
@@ -199,4 +200,5 @@ include_directories(
 # catkin_add_nosetests(test)
 
 add_executable(pick_pass_node src/pick_pass_node.cpp)
+add_dependencies(pick_pass_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(pick_pass_node ${catkin_LIBRARIES})

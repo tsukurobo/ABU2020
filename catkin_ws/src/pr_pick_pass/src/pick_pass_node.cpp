@@ -1,53 +1,76 @@
-#include"ros/ros.h"
-#include"std_msgs/Int16MultiArray.h"
-#include<sstream>
-
-//constant
-const int MAIN_FREQUENCY = 10; //メインループ周波数[Hz]
-const int POWER_WIND  = 60; //ロープ巻き上げモータパワー (-255~255)
-const int POWER_LOWER = 60; //手を下ろすモータパワー (-255~255)
-const int POWER_RAISE = 60; //手を上げるモータパワー (-255~255)
-const int TARGET_DEG  = 120; //ピックアップ時に動かす角度[deg]
+#include <ros/ros.h>
+#include <std_msgs/Int16MultiArray.h>
+#include <pr_kpp_test_joycon/pp_msg.h>
+#include <sstream>
 
 //global variable
-ros::Subscriber sub; //subscriber from topic "pp_order"
-ros::Publisher  pub; //publisher to topic "pp_tpc"
-std_msgs::Int16MultiArray subData; //sub data from topic "pp_order"
-std_msgs::Int16MultiArray pubData; //pub data to topic "pp_tpc"
+ros::Subscriber sub_beg; //subscriber from upper layer (tpc "pp_tpc")
+ros::Subscriber sub_fin; //subscriber from arduino(tpc "pp_fin")
+ros::Publisher  pub_beg; //publisher to arduino(tpc "pp_order")
+ros::Publisher  pub_fin; //publisher to upper layer(tpc "pp_tpc")
+int FREQ; //メインループ周波数[Hz]
+int POW_LOWER; //手を下ろすモータパワー (-255~255)
+int POW_RAISE; //手を上げるモータパワー (-255~255)
+int POW_WIND;  //ロープ巻き上げモータパワー (-255~255)
+int DEG_1; //ピックアップ時に動かす角度[deg]
+int DEG_2; //ピックアップ時に戻す角度[deg]
+int DELAY; //ソレノイドonの時間[milli sec]
 
 //function protype
-void callback(const std_msgs::Int16MultiArray& msg);
+void cb_begin_task(const pr_kpp_test_joycon::pp_msg& beg_order);
+void cb_finish_task(const std_msgs::Int16MultiArray& fin_msg);
 
 int main(int argc, char **argv){
-	//variable declaration
-	subData.data.resize(3);
-	pubData.data.resize(7);
-	pubData.data[3] = POWER_WIND;
-	pubData.data[4] = POWER_LOWER;
-	pubData.data[5] = POWER_RAISE;
-	pubData.data[6] = TARGET_DEG;
-
 	//node init
 	ros::init(argc,argv,"pick_pass_node");
 	ros::NodeHandle nh;
 
-	sub = nh.subscribe("pp_order",10,callback);
-	pub = nh.advertise <std_msgs::Int16MultiArray>("pp_tpc",1);
+	sub_beg = nh.subscribe("pp_tpc",10,cb_begin_task);
+	sub_fin = nh.subscribe("pp_fin",10,cb_finish_task);
+	pub_beg = nh.advertise <std_msgs::Int16MultiArray>("pp_order",1);
+	pub_fin = nh.advertise <pr_kpp_test_joycon::pp_msg>("pp_tpc",1);
 
-	ros::Rate loop_rate(MAIN_FREQUENCY);
+	//paramerter
+	nh.getParam("pick_pass_node/FREQ",FREQ);
+	nh.getParam("pick_pass_node/POW_LOWER",POW_LOWER);
+	nh.getParam("pick_pass_node/POW_RAISE",POW_RAISE);
+	nh.getParam("pick_pass_node/POW_WIND",POW_WIND);
+	nh.getParam("pick_pass_node/DEG_1",DEG_1);
+	nh.getParam("pick_pass_node/DEG_2",DEG_2);
+	nh.getParam("pick_pass_node/DELAY",DELAY);
+
+	ros::Rate loop_rate(FREQ);
 
 	//node body
 	while(ros::ok()){
 		ros::spinOnce();
-		pub.publish(pubData);
 		loop_rate.sleep();
 	}
 
 	return 0;
 }
 
-void callback(const std_msgs::Int16MultiArray& msg){
-	pubData.data[0] = msg.data[0];
-	pubData.data[1] = msg.data[1];
-	pubData.data[2] = msg.data[2];
+void cb_begin_task(const pr_kpp_test_joycon::pp_msg& beg_order){
+	std_msgs::Int16MultiArray data;
+	data.data.resize(8);
+
+	data.data[0] = beg_order.pick;
+	data.data[1] = beg_order.launch;
+	data.data[2] = POW_LOWER;
+	data.data[3] = POW_RAISE;
+	data.data[4] = POW_WIND;
+	data.data[5] = DEG_1;
+	data.data[6] = DEG_2;
+	data.data[7] = DELAY;
+
+	pub_beg.publish(data);
+}
+
+void cb_finish_task(const std_msgs::Int16MultiArray& fin_msg){
+	pr_kpp_test_joycon::pp_msg data;
+
+	data.pick   = fin_msg.data[0];
+	data.launch = fin_msg.data[1];
+
+	pub_fin.publish(data);
 }
