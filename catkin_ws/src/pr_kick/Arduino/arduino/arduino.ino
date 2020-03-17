@@ -56,6 +56,9 @@ void setup(){
   //init pin
   pinMode(TOUCH_PIN, INPUT_PULLUP);
   pinMode(SOLENOID_PIN, OUTPUT);
+  
+  //init actuator
+  motor.setSpeed(0);
   digitalWrite(SOLENOID_PIN, LOW);
 }
 
