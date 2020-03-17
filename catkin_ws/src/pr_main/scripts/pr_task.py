@@ -7,9 +7,12 @@ from sensor_msgs import Joy
 from pr_msg.msg import PrMsg
 
 buf = PrMsg()
-bufpick = Int32(0)
-bufpass = Int32(0)
+bufpp = Int32
+bufkick = Int32
+isfire = int()
 
+
+#callback functions
 def cbf(getmsg):
     global buf
     buf = getmsg
@@ -17,6 +20,14 @@ def cbf(getmsg):
 def cbjoy(joybuf):
     global isfire
     isfire = joybuf.buttons[0]
+
+def cbpp(getpp):
+    global bufpp
+    bufpp = getpp
+
+def cbkick(getkick):
+    global bufkick
+    bufkick = getkick
 
 # for waiting a job
 def waitjob(job):
@@ -31,17 +42,22 @@ def waitjob(job):
 
 def _main():
     global buf
+    global isfire
 
     r = rospy.Rate(10)
     pub = rospy.Publisher('pr_main_order', PrMsg, queue_size=None)
     sub = rospy.Subscriber('pr_main_order', PrMsg, cbf)
     subjoy = rospy.Subscriber('joy', Joy, cbjoy)
-    pubpick = rospy.Publisher('pp_order', Int32, queue_size=None)
+    pubpp = rospy.Publisher('pp_order', Int32, queue_size=None)
+    subpp = rospy.Subscriber('pp_order', Int32, cbpp)
+    pubkick = rospy.Publisher('pk_order', Int32, queue_size=None)
+    subkick = rospy.Subscriber('pk_order', Int32, cbkick)
 
     rospy.init_node('pr_pass')
 
     while not rospy.is_shutdown():
-        if buf.pass_ball == 1:
+        #pick ball
+        if buf.pick_ball == 1:
             #move to pick up point
             buf.moveto = 'pick'
             pub.publish(buf)
@@ -50,10 +66,10 @@ def _main():
                 pass
 
             #pick up
-            bufpick.data = 1
-            pubpick.publish(bufpick)
-            while buf.data == 1:
-                pass
+            bufpp.data = 1
+            pubpp.publish(bufpp)
+            while bufpp.data[1] == 1:
+                r.sleep()
 
             #move to pass point
             buf.moveto = 'pass'
@@ -69,14 +85,30 @@ def _main():
         #pass ball
         if buf.pass_ball == 1 and isfire == 1:
             #pass the ball
-            bufpass.data = 1
-            pub.publish(bufpass)
-            while bufpass == 1:
-                pass
+            bufpp.data[2] = 1
+            pubpp.publish(bufpp)
+            while bufpp == 1:
+                r.sleep()
 
             #finish
             buf.pass_ball = 0
             pub.publish(buf)
+
+        #kick ball
+        if buf.kick_ball == 1 and isfire == 1:
+            #kick the ball
+            bufkick.data = 1
+            pubkick.publish(bufkick)
+            while bufkick == 1:
+                r.sleep()
+
+            #finish
+            buf.kick_ball = 0
+            pub.publish(buf)
+        
+
+        r.sleep()
+        
             
         
 if __name__ == '__main__':
