@@ -12,7 +12,7 @@ from pr_msg.msg import KickMsg
 buf = PrMsg()
 bufpp = PpMsg()
 bufkick = KickMsg()
-isfire = int()
+isfire = 0
 
 
 #callback functions
@@ -126,7 +126,7 @@ def _main():
             #reload anyo
             bufkick.wind = 1
             pubkick.publish(bufkick)
-            while bufkick.launch == 1:
+            while bufkick.wind == 1:
                 r.sleep()
             if bufkick < 0:
                 #error
