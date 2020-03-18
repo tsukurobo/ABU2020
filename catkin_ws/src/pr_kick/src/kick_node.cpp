@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <std_msgs/Int16MultiArray.h>
 #include <pr_kpp_test_joycon/kick_msg.h>
+#include <pr_msg/KickMsg.h>
 #include <sstream>
 
 //global variable
