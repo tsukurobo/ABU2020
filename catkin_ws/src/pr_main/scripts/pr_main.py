@@ -1,27 +1,24 @@
+#!/usr/bin/env python
 import rospy
-import std_msgs
 #from sensor_msgs import Joy
 
 from pr_msg.msg import PrMsg
 
 #definitions and initalization of variables
-order_buf = PrMsg()
-dict_order = vars(order_buf)
-
-#definitions of pubkisher 
-pub = rospy.Publisher("pr_main_order", PrMsg, queue_size=None)
+buf_order = PrMsg()
 
 #callback function of msg
 def pr_cb_msg(getmsg):
-    global order_buf = getmsg
+    #global buf_order
+    buf_order = getmsg
 
 # for waiting a job
 def waitjob(job):
-    global order_buf
+    global buf_order
     r = rospy.Rate(10)
-    while getattr(order_buf, job) == 1:
+    while getattr(buf_order, job) == 1:
         r.sleep()
-    if getattr(order_buf, job) == 0:
+    if getattr(buf_order, job) == 0:
         return 0
     else:
         return 1
@@ -32,26 +29,29 @@ def _main():
     rospy.init_node("pr_main")
     
     #definitions of variables
-    global order_buf
+    global buf_order
     step = 0
     r = rospy.Rate(10)
 
     #definiton of subscriber
-    subOrder = rospy.Subscriber("pr_main_order", PrMsg, pr_cb_msg)
+    suborder = rospy.Subscriber("pr_main_order", PrMsg, pr_cb_msg)
+    #definitions of publisher 
+    pub = rospy.Publisher("pr_main_order", PrMsg,queue_size=1)
 
     #Main loop of PR
     while not rospy.is_shutdown():
+        #rospy.loginfo('top of main loop')
         #pick up pass ball and throw them to TR (x4)
         numpb = 0
         while step == 0 and numpb < 4:
-            order_buf.pick_ball = 1
-            pub.publish(order_buf)
+            buf_order.pick_ball = 1
+            pub.publish(buf_order)
             if waitjob("pick_ball") == 1:
                 #error
                 pass
             else:
-                order_buf.pass_ball = 1
-                pub.publish(order_buf)
+                buf_order.pass_ball = 1
+                pub.publish(buf_order)
                 if waitjob("pass_ball") == 1:
                     #error
                     pass
@@ -63,8 +63,8 @@ def _main():
         #load kick ball (x3)
         numkb = 0
         while step == 1 and numkb < 3:
-            order_buf.load_ball = 1
-            pub.publish(order_buf)
+            buf_order.load_ball = 1
+            pub.publish(buf_order)
             if waitjob("load_ball") == 1:
                 #error
                 pass
@@ -74,8 +74,8 @@ def _main():
 
         #kick the ball (x3)
         while step == 2 and numkb > 0:
-            order_buf.kick_ball = 1
-            pub.publish(order_buf)
+            buf_order.kick_ball = 1
+            pub.publish(buf_order)
             if waitjob("kick_ball") == 1:
                 #error
                 pass
@@ -85,11 +85,11 @@ def _main():
         step=3
 
         #EXTRA ORDER
-        if step == 3 and order_buf.extra == 1:
+        if step == 3 and buf_order.extra == 1:
 
             #(extra) load kick ball (x1)
-            order_buf.load_ball = 1
-            pub.publish(order_buf)
+            buf_order.load_ball = 1
+            pub.publish(buf_order)
             if waitjob("load_ball") == 1:
                 #error
                 pass
@@ -97,8 +97,8 @@ def _main():
                 pass
 
             #(extra) kick the ball (x1)
-            order_buf.kick_ball = 1
-            pub.publish(order_buf)
+            buf_order.kick_ball = 1
+            pub.publish(buf_order)
             if waitjob("kick_ball") == 1:
                 #error
                 pass

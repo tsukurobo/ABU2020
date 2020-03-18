@@ -108,7 +108,7 @@ catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES pr_main
  CATKIN_DEPENDS  rospy std_msgs pr_msg
-# DEPENDS system_lib
+ DEPENDS system_lib
 )
 
 ###########

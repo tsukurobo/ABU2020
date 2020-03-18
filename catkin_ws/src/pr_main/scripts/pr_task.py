@@ -1,17 +1,20 @@
+#!/usr/bin/env python
 # pr_pass.py
 
 import rospy
-from std_msgs import Int32
-from sensor_msgs import Joy
+from std_msgs.msg import Int32
+from sensor_msgs.msg import Joy
 
 #import custom messages
 from pr_msg.msg import PrMsg
 from pr_msg.msg import PpMsg
 from pr_msg.msg import KickMsg
+from pr_msg.msg import MoveMsg
 
 buf = PrMsg()
 bufpp = PpMsg()
 bufkick = KickMsg()
+bufmove = MoveMsg()
 isfire = 0
 
 
@@ -32,16 +35,9 @@ def cbkick(getkick):
     global bufkick
     bufkick = getkick
 
-# for waiting a job
-def waitjob(job):
-    global order_buf
-    r = rospy.Rate(10)
-    while getattr(buf, job) == 1:
-        r.sleep()
-    if getattr(buf, job) == 0:
-        return 0
-    else:
-        return 1
+def cbmove(getmove):
+    global bufmove
+    bufmove = getmove
 
 def _main():
     global buf
@@ -49,25 +45,31 @@ def _main():
     global bufkick
     global isfire
 
+    rospy.init_node('pr_task')
+    
     r = rospy.Rate(10)
 
-    pub = rospy.Publisher('pr_main_order', PrMsg, queue_size=None)
+    pub = rospy.Publisher('pr_main_order', PrMsg, queue_size=1)
     sub = rospy.Subscriber('pr_main_order', PrMsg, cbf)
     subjoy = rospy.Subscriber('joy', Joy, cbjoy)
-    pubpp = rospy.Publisher('pp_tpc', PpMsg, queue_size=None)
+    pubpp = rospy.Publisher('pp_tpc', PpMsg, queue_size=1)
     subpp = rospy.Subscriber('pp_tpc', PpMsg, cbpp)
-    pubkick = rospy.Publisher('kick_tpc', KickMsg, queue_size=None)
+    pubkick = rospy.Publisher('kick_tpc', KickMsg, queue_size=1)
     subkick = rospy.Subscriber('kick_tpc', KickMsg, cbkick)
-
-    rospy.init_node('pr_task')
+    pubmove = rospy.Publisher('move_tpc', MoveMsg,queue_size=1)
+    submove = rospy.Subscriber('move_tpc', MoveMsg, cbmove)
 
     while not rospy.is_shutdown():
+        rospy.loginfo('top of main loop')
         #pick ball
         if buf.pick_ball == 1:
             #move to pick up point
-            buf.moveto = 'pick'
-            pub.publish(buf)
-            if waitjob('moveto') == 1:
+            bufmove.moveto = 'pick'
+            bufmove.flag = 1
+            pubmove.publish(bufmove)
+            while bufmove.flag == 1:
+                r.sleep()
+            if bufmove.flag < 0:
                 #error
                 pass
 
@@ -81,9 +83,12 @@ def _main():
                 pass
 
             #move to pass point
-            buf.moveto = 'pass'
-            pub.publish(buf)
-            if waitjob('moveto') == 1:
+            bufmove.moveto = 'pass'
+            bufmove.flag = 1
+            pubmove.publish(bufmove)
+            while bufmove.flag == 1:
+                r.sleep()
+            if bufmove.flag < 0:
                 #error
                 pass
 
@@ -105,16 +110,19 @@ def _main():
 
         #kick ball
         if buf.kick_ball == 1:
-            #move to pick up point
-            buf.moveto = 'kick'
-            pub.publish(buf)
-            if waitjob('moveto') == 1:
+            #move to kick point
+            bufmove.moveto = 'kick'
+            bufmove.flag = 1
+            pubmove.publish(bufmove)
+            while bufmove.flag == 1:
+                r.sleep()
+            if bufmove.flag < 0:
                 #error
                 pass
 
             #kick the ball
             while isfire == 0:  #wait for input from joy
-                pass
+                r.sleep()
             bufkick.launch = 1
             pubkick.publish(bufkick)
             while bufkick.launch == 1:
