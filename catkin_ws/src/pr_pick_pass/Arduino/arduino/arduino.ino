@@ -25,12 +25,15 @@ int pw_raise = 0; //motor power of raise ball (-255~255)
 int pw_wind  = 0; //motor power of wind rope (-255~255)
 int target_deg_1 = 0; //degree of lower hand for pick up[deg]
 int target_deg_2 = 0; //degree of lower hand for pick up[deg]
-int delay_time = 0; //delay time of solonoid on [milli sec]
+int delay_sol  = 0; //delay time of solonoid on [milli sec]
+int delay_hand = 0; //delay time of hand when pick up [milli sec]
 
 //function prottype
 void callback(const std_msgs::Int16MultiArray& msg);
 void picking_up();
 void launching();
+void hand_open();
+void hand_hold();
 
 
 //init
@@ -44,7 +47,7 @@ IseMotorDriver mot_pass(ADDR_PASS);
 
 //debug
 //std_msgs::Float64 debug;
-//ros::Publisher pub("debug_tpc",&debug);
+//ros::Publisher pubD("debug_tpc",&debug);
   
 void setup(){
   Wire.begin(); 
@@ -54,7 +57,7 @@ void setup(){
   nh.subscribe(sub);
   nh.advertise(pub);
   //debug
-  //nh.advertise(pub);
+  //nh.advertise(pubD);
 
   data.data_length = 2;
   data.data = (int16_t*)malloc(sizeof(int16_t)*2);
@@ -84,6 +87,13 @@ void loop(){
   //launch
   if(order_launch==1) launching();
 
+  //off all actuators
+  digitalWrite(SOLENOID_PIN, LOW);
+  digitalWrite(VALVE_PIN_1, LOW);
+  digitalWrite(VALVE_PIN_2, LOW);
+  mot_pick.setSpeed(0);
+  mot_pass.setSpeed(0);
+  
   delay(MAIN_DELAY); 
 }
 
@@ -92,33 +102,36 @@ void picking_up(){
   //value of touch sensor (OFF:LOW ON:HIGH) 
   long enc = 0;
 
-  //タイムラグ分の処理を入れる
-
   //init this function
   nh.spinOnce();
-  if(order_pick<0) goto RESET;
+  if(order_pick<1) goto RESET; //ここだけ1未満（ラグの影響を回避するため）
 
   //open hand
   hand_open();
-
+  
   //lower hand
   do{
     nh.spinOnce();
-    if(order_pick<0) goto RESET;
+    if(order_launch<0) goto RESET;
 
     mot_pick.setSpeed(pw_lower);
     enc = mot_pick.encorder();
     delay(MAIN_DELAY);
-  }while(target_deg_1 > enc);
-
+  }while(target_deg_1*(ENC_PER_ROT/360.0) < enc);
+    
   mot_pick.setSpeed(0);
+
+  //wait for hold hand
+  delay(delay_hand);
   
   //hold hand
   hand_hold();
 
-  delay(200);
+  //wait for hold hand
+  delay(delay_hand);
   
   //raise hand
+    //raise hand
   do{
     nh.spinOnce();
     if(order_pick<0) goto RESET;
@@ -126,17 +139,18 @@ void picking_up(){
     mot_pick.setSpeed(pw_raise);
     enc = mot_pick.encorder();
     delay(MAIN_DELAY);
-  }while(enc > target_deg_2);
+  }while(enc < target_deg_2*(ENC_PER_ROT/360.0));
 
   mot_pick.setSpeed(0);
 
-  //open hand
-  hand_open();
-  
+  //complete pick up
   data.data[0] = 0;
   pub.publish(&data);
+  
 RESET:
-;
+
+  //wait for time lag;
+  delay(500);
 }
 
 //launch
@@ -144,12 +158,16 @@ void launching(){
   //value of touch sensor (OFF:LOW ON:HIGH) 
   long enc = 0;
 
-  //タイムラグ分の処理を入れる
-
   //init this function
   nh.spinOnce();
-  if(order_launch<0) goto RESET;
+  if(order_launch<1) goto RESET; //ここだけ1未満（ラグの影響を回避するため）
 
+  //open hand
+  hand_open();
+
+  //wait for hand
+  delay(delay_hand);
+  
   //lower hand
   do{
     nh.spinOnce();
@@ -158,8 +176,8 @@ void launching(){
     mot_pick.setSpeed(pw_lower);
     enc = mot_pick.encorder();
     delay(MAIN_DELAY);
-  }while(target_deg_1 > enc);
-  
+  }while(target_deg_1*(ENC_PER_ROT/360.0) < enc);
+    
   mot_pick.setSpeed(0);
 
   //launch ball  
@@ -167,12 +185,17 @@ void launching(){
     nh.spinOnce();
     if(order_launch<0) goto RESET;
     digitalWrite(SOLENOID_PIN,HIGH);
-    delay(delay_time);
+    delay(delay_sol);
     digitalWrite(SOLENOID_PIN,LOW);
-    delay(delay_time*9);
+    delay(delay_sol*9);
   }
 
-  delay(500);
+  //complete launch
+  data.data[1] = 2;
+  pub.publish(&data);
+
+  //wait for launching time
+  delay(1000);
   
   //wind rope
   do{
@@ -188,9 +211,9 @@ void launching(){
     if(order_launch<0) goto RESET;
 
     mot_pass.setSpeed(-pw_wind);
-    enc = mot_pass.encorder();
+    enc = mot_pass.encorder();    
     delay(MAIN_DELAY);
-  }while(enc>0);
+  }while(enc < 0);
 
   mot_pass.setSpeed(0);
   
@@ -202,14 +225,18 @@ void launching(){
     mot_pick.setSpeed(pw_raise);
     enc = mot_pick.encorder();
     delay(MAIN_DELAY);
-  }while(enc > target_deg_2);
+  }while(enc < target_deg_2*(ENC_PER_ROT/360.0));
 
   mot_pick.setSpeed(0);
 
+  //complete wind
   data.data[1] = 0;
   pub.publish(&data);
+
 RESET:
-;
+
+  //wait for time lag;
+  delay(500);
 }
 
 //open hand
@@ -237,5 +264,6 @@ void callback(const std_msgs::Int16MultiArray& msg){
   pw_wind      = msg.data[4];
   target_deg_1 = msg.data[5];
   target_deg_2 = msg.data[6];
-  delay_time   = msg.data[7];
+  delay_sol    = msg.data[7];
+  delay_hand   = msg.data[8];
 }

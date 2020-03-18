@@ -1,14 +1,15 @@
 <launch>
 	<node pkg="pr_pick_pass" name="pick_pass_node" type="pick_pass_node">
-		<param name="FREQ" value="25"/>
-		<param name="POW_LOWER" value="30"/>
-		<param name="POW_RAISE" value="-30"/>
+		<param name="FREQ" value="10"/>
+		<param name="POW_LOWER" value="-70"/>
+		<param name="POW_RAISE" value="80"/>
 		<param name="POW_WIND" value="30"/>
-		<param name="DEG_1" value="180"/>
-		<param name="DEG_2" value="10"/>
-		<param name="DELAY" value="10"/>
+		<param name="DEG_1" value="-150"/>
+		<param name="DEG_2" value="-10"/>
+		<param name="DELAY_SOL" value="20"/>
+		<param name="DELAY_HAND" value="500"/>
 	</node>
 	<node pkg="rosserial_python" type="serial_node.py" name="serial_node0">
-		<param name="port" value="/dev/ttyACM0"/>
+		<param name="port" value="/dev/ttyACM1"/>
 	</node>
 </launch>

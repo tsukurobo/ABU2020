@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <std_msgs/Int16MultiArray.h>
 #include <pr_kpp_test_joycon/pp_msg.h>
+#include <pr_msg/PpMsg.h>
 #include <sstream>
 
 //global variable
@@ -14,7 +15,8 @@ int POW_RAISE; //手を上げるモータパワー (-255~255)
 int POW_WIND;  //ロープ巻き上げモータパワー (-255~255)
 int DEG_1; //ピックアップ時に動かす角度[deg]
 int DEG_2; //ピックアップ時に戻す角度[deg]
-int DELAY; //ソレノイドonの時間[milli sec]
+int DELAY_SOL;  //ソレノイドonの時間[milli sec]
+int DELAY_HAND; //ピックアップ時つかむ前後の待ち時間[milli sec]
 
 //function protype
 void cb_begin_task(const pr_kpp_test_joycon::pp_msg& beg_order);
@@ -37,7 +39,8 @@ int main(int argc, char **argv){
 	nh.getParam("pick_pass_node/POW_WIND",POW_WIND);
 	nh.getParam("pick_pass_node/DEG_1",DEG_1);
 	nh.getParam("pick_pass_node/DEG_2",DEG_2);
-	nh.getParam("pick_pass_node/DELAY",DELAY);
+	nh.getParam("pick_pass_node/DELAY_SOL",DELAY_SOL);
+	nh.getParam("pick_pass_node/DELAY_HAND",DELAY_HAND);
 
 	ros::Rate loop_rate(FREQ);
 
@@ -52,7 +55,7 @@ int main(int argc, char **argv){
 
 void cb_begin_task(const pr_kpp_test_joycon::pp_msg& beg_order){
 	std_msgs::Int16MultiArray data;
-	data.data.resize(8);
+	data.data.resize(9);
 
 	data.data[0] = beg_order.pick;
 	data.data[1] = beg_order.launch;
@@ -61,7 +64,8 @@ void cb_begin_task(const pr_kpp_test_joycon::pp_msg& beg_order){
 	data.data[4] = POW_WIND;
 	data.data[5] = DEG_1;
 	data.data[6] = DEG_2;
-	data.data[7] = DELAY;
+	data.data[7] = DELAY_SOL;
+	data.data[8] = DELAY_HAND;
 
 	pub_beg.publish(data);
 }
