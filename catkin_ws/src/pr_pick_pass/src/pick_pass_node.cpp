@@ -1,6 +1,5 @@
 #include <ros/ros.h>
 #include <std_msgs/Int16MultiArray.h>
-#include <pr_kpp_test_joycon/pp_msg.h>
 #include <pr_msg/PpMsg.h>
 #include <sstream>
 
@@ -19,7 +18,7 @@ int DELAY_SOL;  //ソレノイドonの時間[milli sec]
 int DELAY_HAND; //ピックアップ時つかむ前後の待ち時間[milli sec]
 
 //function protype
-void cb_begin_task(const pr_kpp_test_joycon::pp_msg& beg_order);
+void cb_begin_task(const pr_msg::PpMsg& beg_order);
 void cb_finish_task(const std_msgs::Int16MultiArray& fin_msg);
 
 int main(int argc, char **argv){
@@ -30,7 +29,7 @@ int main(int argc, char **argv){
 	sub_beg = nh.subscribe("pp_tpc",10,cb_begin_task);
 	sub_fin = nh.subscribe("pp_fin",10,cb_finish_task);
 	pub_beg = nh.advertise <std_msgs::Int16MultiArray>("pp_order",1);
-	pub_fin = nh.advertise <pr_kpp_test_joycon::pp_msg>("pp_tpc",1);
+	pub_fin = nh.advertise <pr_msg::PpMsg>("pp_tpc",1);
 
 	//paramerter
 	nh.getParam("pick_pass_node/FREQ",FREQ);
@@ -53,7 +52,7 @@ int main(int argc, char **argv){
 	return 0;
 }
 
-void cb_begin_task(const pr_kpp_test_joycon::pp_msg& beg_order){
+void cb_begin_task(const pr_msg::PpMsg& beg_order){
 	std_msgs::Int16MultiArray data;
 	data.data.resize(9);
 
@@ -71,7 +70,7 @@ void cb_begin_task(const pr_kpp_test_joycon::pp_msg& beg_order){
 }
 
 void cb_finish_task(const std_msgs::Int16MultiArray& fin_msg){
-	pr_kpp_test_joycon::pp_msg data;
+	pr_msg::PpMsg data;
 
 	data.pick   = fin_msg.data[0];
 	data.launch = fin_msg.data[1];

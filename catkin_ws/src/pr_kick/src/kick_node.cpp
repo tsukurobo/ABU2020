@@ -1,6 +1,5 @@
 #include <ros/ros.h>
 #include <std_msgs/Int16MultiArray.h>
-#include <pr_kpp_test_joycon/kick_msg.h>
 #include <pr_msg/KickMsg.h>
 #include <sstream>
 
@@ -14,7 +13,7 @@ int FREQ;  //frequency of main loop [Hz]
 int DELAY; //delay time of solenoid on/off [milli sec]
 
 //function protype
-void cb_begin_task(const pr_kpp_test_joycon::kick_msg& beg_order);
+void cb_begin_task(const pr_msg::KickMsg& beg_order);
 void cb_finish_task(const std_msgs::Int16MultiArray& fin_msg);
 
 int main(int argc, char **argv){
@@ -25,7 +24,7 @@ int main(int argc, char **argv){
 	sub_beg = nh.subscribe("kick_tpc",10,cb_begin_task);
 	sub_fin = nh.subscribe("kick_fin",10,cb_finish_task); 
 	pub_beg = nh.advertise <std_msgs::Int16MultiArray>("kick_order",1);
-	pub_fin = nh.advertise <pr_kpp_test_joycon::kick_msg>("kick_tpc",1);
+	pub_fin = nh.advertise <pr_msg::KickMsg>("kick_tpc",1);
 
 	//parameter
 	nh.getParam("kick_node/FREQ",FREQ);
@@ -43,7 +42,7 @@ int main(int argc, char **argv){
 	return 0;
 }
 
-void cb_begin_task(const pr_kpp_test_joycon::kick_msg& beg_order){
+void cb_begin_task(const pr_msg::KickMsg& beg_order){
 	std_msgs::Int16MultiArray data;
 	data.data.resize(4);
 
@@ -56,7 +55,7 @@ void cb_begin_task(const pr_kpp_test_joycon::kick_msg& beg_order){
 }
 
 void cb_finish_task(const std_msgs::Int16MultiArray& fin_msg){
-	pr_kpp_test_joycon::kick_msg data;
+	pr_msg::KickMsg data;
 
 	data.wind   = fin_msg.data[0];
 	data.launch = fin_msg.data[1];
