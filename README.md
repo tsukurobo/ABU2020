@@ -22,7 +22,9 @@ likelyhood_field_creator
 global_planner  
 motion_planner  
   
-pr_arduino_driver.py: arduinoへのモーター回転速度指令の伝達、ジャイロセンサを用いたカルマンフィルタの実行、エンコーダを用いたオドメトリの計算を行う。  
+pr_arduino_driver.py
+	
+	arduinoへのモーター回転速度指令の伝達、ジャイロセンサを用いたカルマンフィルタの実行、エンコーダを用いたオドメトリの計算を行う。  
 
 	pub,sub  
 	[トピック名]（メッセージ型）：説明  
@@ -35,35 +37,45 @@ pr_arduino_driver.py: arduinoへのモーター回転速度指令の伝達、ジ
 	[current_pos] (geometry_msgs/Vector3): map座標系から見たロボットの姿勢(x,y,θ)。回転角度は-πからπの値を取る。
 	[gyro] (std_msgs/Float32): ジャイロセンサから得られた、odom座標系から見たロボットのヨー角(の推定値)。単位は°。任意の実数値をとる。  
   
-pr_tf_listener.py: tf情報を読み取り、/mapから見た/base_linkのx座標、y座標、yaw角を取得、それをcurrent_posにパブリッシュする。  
+pr_tf_listener.py
+
+	tf情報を読み取り、/mapから見た/base_linkのx座標、y座標、yaw角を取得、それをcurrent_posにパブリッシュする。  
 
 	pub
 	[current_pos] (geometry_msgs/Vector3): 前述した通り。
 	sub
 	[tf]: TransForm
 	
-pr_task_manager.py: joyトピックをサブスクライブし、joystickの操作コマンドを変換してcmd_velトピックにパブリッシュする。
+pr_task_manager.py
+
+	joyトピックをサブスクライブし、joystickの操作コマンドを変換してcmd_velトピックにパブリッシュする。
 
 	pub
 	[cmd_vel] (geometry_msgs/Twist): joystickからのデータをもとに計算された、ロボットの並進速度と角速度。
 	sub
 	[joy][sensor_msgs/Joy]: joy_nodeから送られてくる、joystickの操作コマンド。
  
- pr_virtual_omni.py: ヴァーチャル３輪オムニ。操作系のデバッグに使ったりする。通常は使用しない。
+ pr_virtual_omni.py
+ 
+ 	ヴァーチャル３輪オムニ。操作系のデバッグに使ったりする。通常は使用しない。
  
  	pub
 	[raw_encoder] (pr/RawEncoder): 省略。
 	sub
 	[raw_power] (pr/RawPower): 省略。
  
- likelyhood_field_creator: 占有格子地図から尤度場(の様なもの)を生成する。これは障害物回避の為の動作計画を決定する際に用いる。
+ likelyhood_field_creator
+ 
+ 	占有格子地図から尤度場(の様なもの)を生成する。これは障害物回避の為の動作計画を決定する際に用いる。
 
  	pub
 	[LFMap] (nav_msgs/OccupancyGrid): 地図データをもとに生成された尤度場データ。
 	sub
 	[map] (nav_msgs/OccupancyGrid): map_serverからパブリッシュされる、地図データ(占有格子地図)。
  
- global_planner: A*アルゴリズムを用いて現在地からゴールまでの最短経路を探索する。
+ global_planner
+ 
+ 	A*アルゴリズムを用いて現在地からゴールまでの最短経路を探索する。
 
 	pub
 	[path] (nav_msgs/Path): A*アルゴリズムにより求められた最短経路。
@@ -72,7 +84,9 @@ pr_task_manager.py: joyトピックをサブスクライブし、joystickの操�
 	[map] (nav_msgs/OccupancyGrid): 地図データ。障害物を避けるような経路を探索するために必要。
 	[current_pos] (geometry_msgs/Vector3): 省略。
  
- motion_planner: Dynamic Window Approachを用いて、経路追従と障害物回避を行えるような速度コマンドを出力する。
+ motion_planner
+ 
+ 	Dynamic Window Approachを用いて、経路追従と障害物回避を行えるような速度コマンドを出力する。
  
  	pub
 	[cmd_vel] (geometry_msgs/Twist): 出力された速度コマンド。メッセージには並進方向速度と角速度が格納されている。
