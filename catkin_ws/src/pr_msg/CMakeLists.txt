@@ -52,6 +52,7 @@ add_message_files(
    PrMsg.msg
    PpMsg.msg
    KickMsg.msg
+   MoveMsg.msg
 #   Message1.msg
 #   Message2.msg
 )
