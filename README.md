@@ -162,3 +162,78 @@ simulator.launch
     pr_arduino_driver.pyから送られてくる速度指令をサブスクライブし、伊勢モードラにduty比を送る + 伊勢モードラからエンコーダの値を読み取り、rosにパブリッシュ + モーターの回転速度のPD制御を行う。  
  - MPU6050_manual_read  
     ジャイロセンサ用arduino unoに書き込むプログラム。ジャイロセンサからの角速度を読み取って回転角度を計算し、gyroトピックにパブリッシュする。
+
+# pr_kick
+キック機構の巻取り・発射を行う．
+
+kick_node
+	
+	上層からの指令とarduinoの仲介を行う．
+	
+	param
+	int FREQ: kick_nodeのsipinOnce()の実行周波数[Hz] 
+	int POW: ロープの巻取り・緩め時のモータのパワー　(-255~255)
+	int DELAY: 発射用ソレノイドに電流を流す時間　(流した後その9倍の時間OFFになる)[millisec]
+	
+	pub
+	[kick_order](std_msg/Int16MultiArray): 上層からの指令にパラメータを付け加え，arduinoへ送る．
+	[kick_tpc](pr_msg/KickMsg): arduinoからの動作終了フラグを，上層へ送る．
+	
+	sub
+	[kick_tpc](pr_msg/KickMsg): 上層からの指令．このノード自身が書き換えもする．
+	[kick_fin](std_msg/Int16MultiArray):　arduinoからの動作終了フラグ
+	
+	備考
+	
+	動作指令であるKickMsgは
+	int32 launch
+	int32 wind
+	
+	どちらの指令内容も以下のようになっている．
+	 1:実行 
+	 0:待機
+	-1:緊急停止
+	
+	実行（１を受け取る）の際それぞれの指令で，以下のことを行う．
+	launch: ロープの巻取り・緩めを行う
+	wind: ロックが外れるまでソレノイドで連打
+
+# pr_pick_pass
+ピック機構・パス機構の操作を行う．
+
+pick_pass_node
+	
+	上層からの指令とarduinoの仲介を行う．
+	
+	param
+	int FREQ: pick_pass_nodeのsipinOnce()の実行周波数[Hz] 
+	int POW_LOWER: おててを下げる時のモータのパワー　(-255~255)
+	int POW_RAISE: おててを上げる時のモータのパワー　(-255~255)
+	int POW_WIND: ロープの巻取り・緩め時のモータのパワー　(-255~255)
+	int DEG_1: おててを下げる時の目標角度[deg]
+	int DEG_1: おててを上げる時の目標角度[deg]
+	int DELAY_SOL: 発射用ソレノイドに電流を流す時間　(流した後その9倍の時間OFFになる)[millisec]
+	int DELAY_HAND: おててを下げてからボールを掴むまで・掴んでからおててを上げるまで，の待ち時間　(流した後その9倍の時間OFFになる)[millisec]
+	
+	pub
+	[pp_order](std_msg/Int16MultiArray): 上層からの指令にパラメータを付け加え，arduinoへ送る．
+	[pp_tpc](pr_msg/PpMsg): arduinoからの動作終了フラグを，上層へ送る．
+	
+	sub
+	[pp_tpc](pr_msg/PpkMsg): 上層からの指令．このノード自身が書き換えもする．
+	[pp_fin](std_msg/Int16MultiArray):　arduinoからの動作終了フラグ
+	
+	備考
+	
+	動作指令であるPpMsgは
+	int32 pick
+	int32 launch
+	
+	どちらの指令内容も以下のようになっている．
+	 1:実行 
+	 0:待機
+	-1:緊急停止	
+
+	実行（1を受け取る）の際それぞれの指令で，以下のことを行う．
+	pick: おててを広げ，下ろし，ボールを掴み，上げる
+	launch（動作1）: おててを広げ，下ろし，ロックが外れるまでソレノイドで連打，発射完了フラグを送り，ロープを巻取り，おててを上げる
