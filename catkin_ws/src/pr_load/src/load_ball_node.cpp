@@ -3,6 +3,8 @@
 #include <std_msgs/Int32.h>
 #include <sstream>
 
+#include "pr_msg/LoadMsg.h"
+
 //global variable
 ros::Subscriber sub_beg; //subscriber from upper layer (tpc"load_tpc")
 ros::Subscriber sub_fin; //subscriber from arduino (tpc"load_fin")
@@ -22,7 +24,7 @@ int main(int argc, char **argv){
 	sub_beg = nh.subscribe("load_tpc",10,cb_begin_task);
 	sub_fin = nh.subscribe("load_fin",10,cb_finish_task); 
 	pub_beg = nh.advertise <std_msgs::Int16MultiArray>("load_order",1);
-	pub_fin = nh.advertise <std_msgs::Int32>("load_tpc",1);
+	pub_fin = nh.advertise <pr_msg::LoadMsg>("load_tpc",1);
 
 	//parameter
 //	nh.getParam("kick_node/FREQ",FREQ);
@@ -40,13 +42,13 @@ int main(int argc, char **argv){
 	return 0;
 }
 
-void cb_begin_task(const std_msg::Int32& beg_order){
+void cb_begin_task(const pr_msg::LoadMsg& beg_order){
 	std_msgs::Int16MultiArray data;
 	data.data.resize(4);
 
-	data.data[0] = beg_order.data;
-	//data.data[1] = beg_order.launch;
-	//data.data[2] = POW;
+	data.data[0] = beg_order.load;
+	data.data[1] = beg_order.tee_wind;
+	data.data[2] = beg_order.tee_set;
 	//data.data[3] = DELAY;
 
 	pub_beg.publish(data);

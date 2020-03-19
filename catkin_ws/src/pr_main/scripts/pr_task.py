@@ -10,13 +10,17 @@ from pr_msg.msg import PrMsg
 from pr_msg.msg import PpMsg
 from pr_msg.msg import KickMsg
 from pr_msg.msg import MoveMsg
+from pr_msg.msg import LoadMsg
 
 buf = PrMsg()
 bufpp = PpMsg()
 bufkick = KickMsg()
 bufmove = MoveMsg()
+bufload = LoadMsg()
 isfire = 0
 
+class numkick: 
+    data = 0
 
 #callback functions
 def cbf(getmsg):
@@ -39,10 +43,15 @@ def cbmove(getmove):
     global bufmove
     bufmove = getmove
 
+def cbload(getload):
+    global bufload
+    bufload = getload
+
 def _main():
     global buf
     global bufpp
     global bufkick
+    global bufload
     global isfire
 
     rospy.init_node('pr_task')
@@ -58,10 +67,13 @@ def _main():
     subkick = rospy.Subscriber('kick_tpc', KickMsg, cbkick)
     pubmove = rospy.Publisher('move_tpc', MoveMsg,queue_size=1)
     submove = rospy.Subscriber('move_tpc', MoveMsg, cbmove)
+    pubload = rospy.Publisher('load_tpc', LoadMsg, queue_size=None)
+    subload = rospy.Subscriber('load_tpc', LoadMsg, cbload)
 
     while not rospy.is_shutdown():
         rospy.loginfo('top of main loop')
-        #pick ball
+
+        #pick ball///////////////////////////////////////////////////
         if buf.pick_ball == 1:
             #move to pick up point
             bufmove.moveto = 'pick'
@@ -96,10 +108,13 @@ def _main():
             buf.pick_ball = 0
             pub.publish(buf)
 
-        #pass ball
+        #pass ball//////////////////////////////////////////////////
         if buf.pass_ball == 1 and isfire == 1:
+            #wait for reload of pass
+            while bufpp.pass_ball == 2:
+                r.sleep()
             #pass the ball
-            bufpp.data[2] = 1
+            bufpp.pass_ball = 1
             pubpp.publish(bufpp)
             while bufpp == 1:
                 r.sleep()
@@ -108,7 +123,8 @@ def _main():
             buf.pass_ball = 0
             pub.publish(buf)
 
-        #kick ball
+
+        #kick ball////////////////////////////////////////////////////
         if buf.kick_ball == 1:
             #move to kick point
             bufmove.moveto = 'kick'
@@ -130,6 +146,10 @@ def _main():
             if bufkick.launch < 0:
                 #error
                 pass
+            
+            #send finish code here
+            buf.kick_ball = 0
+            pub.publish(buf)
 
             #reload anyo
             bufkick.wind = 1
@@ -140,13 +160,47 @@ def _main():
                 #error
                 pass
 
-            #finish
-            buf.kick_ball = 0
-            pub.publish(buf)
-        
-        #loading kick ball
+            #finish without finish code (already had been sent)
+
+
+        #load kick ball////////////////////////////////////////////////
         if buf.load_ball == 1:
-            pass
+            #set or reset tee
+            if numkick == 0:
+                #first time: set tee
+                bufload.tee_set = 1
+                pubload.publish(bufload)
+                while bufload.tee_set == 1:
+                    r.sleep()
+                if bufload.tee_set < 0:
+                    #error
+                    pass
+                numkick+=1
+            if numkick < 3:
+                #reset tee
+                bufload.tee_wind = 1
+                pubload.publish(bufload)
+                while bufload.tee_wind == 1:
+                    r.sleep()
+                if bufload.tee_wind < 0:
+                    #error
+                    pass
+                numkick += 1
+            else:
+                numkick = 0
+            
+            #load ball
+            bufload.load = 1
+            pubload.publish(bufload)
+            while bufload.load == 1:
+                r.sleep()
+            if bufload < 0:
+                #error
+                pass
+
+            #finish
+            buf.load_ball = 0
+            pub.publish(buf)
 
         r.sleep()
         

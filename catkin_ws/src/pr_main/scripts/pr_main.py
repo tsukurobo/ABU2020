@@ -60,28 +60,25 @@ def _main():
                     numpb += 1
         step=1
 
-        #load kick ball (x3)
+        #load and kick ball (x3)
         numkb = 0
         while step == 1 and numkb < 3:
+            #load
             buf_order.load_ball = 1
             pub.publish(buf_order)
             if waitjob("load_ball") == 1:
                 #error
                 pass
             else:
-                numkb += 1
-        step=2
-
-        #kick the ball (x3)
-        while step == 2 and numkb > 0:
-            buf_order.kick_ball = 1
-            pub.publish(buf_order)
-            if waitjob("kick_ball") == 1:
-                #error
-                pass
-            else:
-                rospy.loginfo("success to kick the ball")
-                numkb -= 1
+                #kick
+                buf_order.kick_ball = 1
+                pub.publish(buf_order)
+                if waitjob("kick_ball") == 1:
+                    #error
+                    pass
+                else:
+                    numkb += 1
+                    rospy.loginfo("success to kick the ball")
         step=3
 
         #EXTRA ORDER

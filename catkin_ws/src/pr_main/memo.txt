@@ -1,0 +1,19 @@
+memo
+
+pr_msg
+
+PrMsg 主に神田のみが使う
+
+KickMsg
+PpMsg
+キック機構・パス機構
+KickMsg内のpass_ballは２でパス完了。０で巻取りも含めて完了
+
+MoveMsg
+int32 flag  1で動作、0で終了、-1エラー
+string where
+
+LoadMsg
+int32 load  ボール装填
+int32 tee_wind  ティー開閉
+int32 tee_set   ティー展開
