@@ -3,10 +3,10 @@
 		<param name="FREQ" value="10"/>
 		<param name="POW_LOWER" value="-70"/>
 		<param name="POW_RAISE" value="80"/>
-		<param name="POW_WIND" value="150"/>
-		<param name="DEG_1" value="-150"/>
-		<param name="DEG_2" value="-10"/>
-		<param name="DELAY_SOL" value="20"/>
+		<param name="POW_WIND" value="100"/>
+		<param name="DEG_1" value="-140"/>
+		<param name="DEG_2" value="-30"/>
+		<param name="DELAY_SOL" value="50"/>
 		<param name="DELAY_HAND" value="500"/>
 	</node>
 	<node pkg="rosserial_python" type="serial_node.py" name="serial_node0">
