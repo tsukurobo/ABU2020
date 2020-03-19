@@ -5,7 +5,7 @@
 #include <ros.h>
 #include <std_msgs/Int16MultiArray.h>
 //debug
-//#include <std_msgs/Float64.h>
+#include <std_msgs/Int64.h>
 
 //constant
 const uint8_t ADDR_PICK = 0x13; //pick up motor address of AVR
@@ -46,8 +46,8 @@ IseMotorDriver mot_pick(ADDR_PICK);
 IseMotorDriver mot_pass(ADDR_PASS);
 
 //debug
-//std_msgs::Float64 debug;
-//ros::Publisher pubD("debug_tpc",&debug);
+std_msgs::Int64 debug;
+ros::Publisher pubD("debug_tpc",&debug);
   
 void setup(){
   Wire.begin(); 
@@ -57,7 +57,7 @@ void setup(){
   nh.subscribe(sub);
   nh.advertise(pub);
   //debug
-  //nh.advertise(pubD);
+  nh.advertise(pubD);
 
   data.data_length = 2;
   data.data = (int16_t*)malloc(sizeof(int16_t)*2);
@@ -108,7 +108,7 @@ void picking_up(){
 
   //open hand
   hand_open();
-  
+
   //lower hand
   do{
     nh.spinOnce();
@@ -116,6 +116,7 @@ void picking_up(){
 
     mot_pick.setSpeed(pw_lower);
     enc = mot_pick.encorder();
+  
     delay(MAIN_DELAY);
   }while(target_deg_1*(ENC_PER_ROT/360.0) < enc);
     
@@ -203,6 +204,11 @@ void launching(){
     if(order_launch<0) goto RESET;
 
     mot_pass.setSpeed(pw_wind);
+
+    enc = mot_pass.encorder();
+    debug.data = enc;
+    pubD.publish(&debug);
+  
     delay(MAIN_DELAY);
   }while(digitalRead(TOUCH_PIN) == HIGH);
   
@@ -211,7 +217,11 @@ void launching(){
     if(order_launch<0) goto RESET;
 
     mot_pass.setSpeed(-pw_wind);
-    enc = mot_pass.encorder();    
+    enc = mot_pass.encorder();
+    
+    debug.data = enc;
+    pubD.publish(&debug);
+    
     delay(MAIN_DELAY);
   }while(enc < 0);
 
