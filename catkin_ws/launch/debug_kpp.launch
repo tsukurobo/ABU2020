@@ -11,7 +11,7 @@
 		<param name="POW_RAISE" value="80"/>
 		<param name="POW_WIND" value="100"/>
 		<param name="DEG_1" value="-140"/>
-		<param name="DEG_2" value="-30"/>
+		<param name="DEG_2" value="-60"/>
 		<param name="DELAY_SOL" value="50"/>
 		<param name="DELAY_HAND" value="500"/>
 		<param name="DELAY_WIND" value="500"/>
