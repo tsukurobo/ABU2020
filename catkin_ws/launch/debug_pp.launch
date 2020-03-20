@@ -8,6 +8,7 @@
 		<param name="DEG_2" value="-30"/>
 		<param name="DELAY_SOL" value="50"/>
 		<param name="DELAY_HAND" value="500"/>
+		<param name="DELAY_WIND" value="500"/>
 	</node>
 	<node pkg="rosserial_python" type="serial_node.py" name="serial_node0">
 		<param name="port" value="/dev/ttyACM0"/>

@@ -27,6 +27,7 @@ int target_deg_1 = 0; //degree of lower hand for pick up[deg]
 int target_deg_2 = 0; //degree of lower hand for pick up[deg]
 int delay_sol  = 0; //delay time of solonoid on [milli sec]
 int delay_hand = 0; //delay time of hand when pick up [milli sec]
+int delay_wind = 0; //delay time of wait wind between normal and reverse[milli sec]
 
 //function prottype
 void callback(const std_msgs::Int16MultiArray& msg);
@@ -212,6 +213,8 @@ void launching(){
     delay(MAIN_DELAY);
   }while(digitalRead(TOUCH_PIN) == HIGH);
   
+  delay(delay_wind);
+
   do{
     nh.spinOnce();
     if(order_launch<0) goto RESET;
@@ -276,4 +279,5 @@ void callback(const std_msgs::Int16MultiArray& msg){
   target_deg_2 = msg.data[6];
   delay_sol    = msg.data[7];
   delay_hand   = msg.data[8];
+  delay_wind   = msg.data[9];
 }

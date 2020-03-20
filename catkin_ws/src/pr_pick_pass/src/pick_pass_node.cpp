@@ -16,6 +16,7 @@ int DEG_1; //ピックアップ時に動かす角度[deg]
 int DEG_2; //ピックアップ時に戻す角度[deg]
 int DELAY_SOL;  //ソレノイドonの時間[milli sec]
 int DELAY_HAND; //ピックアップ時つかむ前後の待ち時間[milli sec]
+int DELAY_WIND; //巻取り時，タッチセンサが反応してから逆回転するまでの待ち時間[milli sec]
 
 //function protype
 void cb_begin_task(const pr_msg::PpMsg& beg_order);
@@ -40,7 +41,8 @@ int main(int argc, char **argv){
 	nh.getParam("pick_pass_node/DEG_2",DEG_2);
 	nh.getParam("pick_pass_node/DELAY_SOL",DELAY_SOL);
 	nh.getParam("pick_pass_node/DELAY_HAND",DELAY_HAND);
-
+	nh.getParam("pick_pass_node/DELAY_WIND",DELAY_WIND);
+	
 	ros::Rate loop_rate(FREQ);
 
 	//node body
@@ -54,7 +56,7 @@ int main(int argc, char **argv){
 
 void cb_begin_task(const pr_msg::PpMsg& beg_order){
 	std_msgs::Int16MultiArray data;
-	data.data.resize(9);
+	data.data.resize(10);
 
 	data.data[0] = beg_order.pick;
 	data.data[1] = beg_order.launch;
@@ -65,6 +67,7 @@ void cb_begin_task(const pr_msg::PpMsg& beg_order){
 	data.data[6] = DEG_2;
 	data.data[7] = DELAY_SOL;
 	data.data[8] = DELAY_HAND;
+	data.data[9] = DELAY_WIND;
 
 	pub_beg.publish(data);
 }
