@@ -1,15 +1,15 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Joy.h>
-#include <pr_kpp_test_joycon/kick_msg.h>
-#include <pr_kpp_test_joycon/pp_msg.h>
+#include <pr_msg/KickMsg.h>
+#include <pr_msg/PpMsg.h>
 #include <sstream>
 
 ros::Subscriber sub_joy;
 ros::Publisher  pub_kick;
 ros::Publisher  pub_pp;
 
-pr_kpp_test_joycon::kick_msg data_kick;
-pr_kpp_test_joycon::pp_msg   data_pp;
+pr_msg::KickMsg data_kick;
+pr_msg::PpMsg   data_pp;
 
 void get_joy(const sensor_msgs::Joy& joy){
 	data_kick.wind   = joy.buttons[5];
@@ -25,8 +25,9 @@ void get_joy(const sensor_msgs::Joy& joy){
 		data_pp.pick     = -1;
 		data_pp.launch   = -1;
 	}
-	pub_kick.publish(data_kick);
-	pub_pp.publish(data_pp);
+
+	if(!(data_kick.wind==0 && data_kick.launch==0)) pub_kick.publish(data_kick);
+	if(!(data_pp.pick==0 && data_pp.launch==0)) pub_pp.publish(data_pp);
 }
 
 int main(int argc, char** argv){
@@ -34,8 +35,8 @@ int main(int argc, char** argv){
 	ros::NodeHandle nh;
 	
 	sub_joy = nh.subscribe("joy", 1, get_joy);	
-	pub_kick = nh.advertise<pr_kpp_test_joycon::kick_msg>("kick_tpc",1);
-	pub_pp   = nh.advertise<pr_kpp_test_joycon::pp_msg>("pp_tpc",1);
+	pub_kick = nh.advertise<pr_msg::KickMsg>("kick_tpc",1);
+	pub_pp   = nh.advertise<pr_msg::PpMsg>("pp_tpc",1);
 
 	ros::Rate r(10.0);
 
