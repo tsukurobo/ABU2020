@@ -1,20 +1,28 @@
 #include <ros/ros.h>
-#include <std_msgs/Int16MultiArray.h>
+#include <std_msgs/Int32MultiArray.h>
 #include <std_msgs/Int32.h>
 #include <sstream>
-
-#include "pr_msg/LoadMsg.h"
 
 //global variable
 ros::Subscriber sub_beg; //subscriber from upper layer (tpc"load_tpc")
 ros::Subscriber sub_fin; //subscriber from arduino (tpc"load_fin")
 ros::Publisher  pub_beg; //publisher to arduino (tpc"load_order")
 ros::Publisher  pub_fin; //publisher to upper layer (tpc"load_tpc")
-//int POW;   //power of motor (-255~255)
-//int FREQ;  //frequency of main loop [Hz]
-//int DELAY; //delay time of solenoid on/off [milli sec]
+int FREQ = 100;  //frequency of main loop [Hz]
+int MOT_SLIDE_PW;
+int MOT_RAISE_PW;
+int MOT_LOWER_PW;
+int MOT_GRASP_PW;
+int MOT_TEE_PW;
+int ENC_LIFT_TOP;
+int ENC_LIFT_MIDDLE;
+int ENC_LIFT_BUTTOM;
+int ENC_TEE_HOLD;
+int ENC_TEE_OPEN;
 
 //function protype
+void cb_begin_task(const std_msgs::Int32& beg_order);
+void cb_finish_task(const std_msgs::Int32& fin_msg);
 
 int main(int argc, char **argv){
 	//node init
@@ -23,13 +31,20 @@ int main(int argc, char **argv){
 
 	sub_beg = nh.subscribe("load_tpc",10,cb_begin_task);
 	sub_fin = nh.subscribe("load_fin",10,cb_finish_task); 
-	pub_beg = nh.advertise <std_msgs::Int16MultiArray>("load_order",1);
-	pub_fin = nh.advertise <pr_msg::LoadMsg>("load_tpc",1);
+	pub_beg = nh.advertise <std_msgs::Int32MultiArray>("load_order",1);
+	pub_fin = nh.advertise <std_msgs::Int32>("load_tpc",1);
 
 	//parameter
-//	nh.getParam("kick_node/FREQ",FREQ);
-//	nh.getParam("kick_node/POW",POW);
-//	nh.getParam("kick_node/DELAY",DELAY);
+	nh.getParam("load_ball_node/MOT_SLIDE_PW",MOT_SLIDE_PW);
+	nh.getParam("load_ball_node/MOT_RAISE_PW",MOT_RAISE_PW);
+	nh.getParam("load_ball_node/MOT_LOWER_PW",MOT_LOWER_PW);
+	nh.getParam("load_ball_node/MOT_GRASP_PW",MOT_GRASP_PW);
+	nh.getParam("load_ball_node/MOT_TEE_PW",MOT_TEE_PW);
+	nh.getParam("load_ball_node/ENC_LIFT_TOP",ENC_LIFT_TOP);
+	nh.getParam("load_ball_node/ENC_LIFT_MIDDLE",ENC_LIFT_MIDDLE);
+	nh.getParam("load_ball_node/ENC_LIFT_BUTTOM",ENC_LIFT_BUTTOM);
+	nh.getParam("load_ball_node/ENC_TEE_HOLD",ENC_TEE_HOLD);
+	nh.getParam("load_ball_node/ENC_TEE_OPEN",ENC_TEE_OPEN);
 
 	ros::Rate loop_rate(FREQ);
 
@@ -42,14 +57,21 @@ int main(int argc, char **argv){
 	return 0;
 }
 
-void cb_begin_task(const pr_msg::LoadMsg& beg_order){
-	std_msgs::Int16MultiArray data;
-	data.data.resize(4);
+void cb_begin_task(const std_msgs::Int32& beg_order){
+	std_msgs::Int32MultiArray data;
+	data.data.resize(11);
 
-	data.data[0] = beg_order.load;
-	data.data[1] = beg_order.tee_wind;
-	data.data[2] = beg_order.tee_set;
-	//data.data[3] = DELAY;
+	data.data[0] = beg_order.data;
+	data.data[1] = MOT_SLIDE_PW;
+	data.data[2] = MOT_RAISE_PW;
+	data.data[3] = MOT_LOWER_PW;
+	data.data[4] = MOT_GRASP_PW;
+	data.data[5] = MOT_TEE_PW;
+	data.data[6] = ENC_LIFT_TOP;
+	data.data[7] = ENC_LIFT_MIDDLE;
+	data.data[8] = ENC_LIFT_BUTTOM;
+	data.data[9] = ENC_TEE_HOLD;
+	data.data[10] = ENC_TEE_OPEN;
 
 	pub_beg.publish(data);
 }
