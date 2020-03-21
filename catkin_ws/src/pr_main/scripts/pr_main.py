@@ -9,13 +9,13 @@ buf_order = PrMsg()
 
 #callback function of msg
 def pr_cb_msg(getmsg):
-    #global buf_order
+    global buf_order
     buf_order = getmsg
 
 # for waiting a job
 def waitjob(job):
     global buf_order
-    r = rospy.Rate(10)
+    r = rospy.Rate(1000)
     while getattr(buf_order, job) == 1:
         r.sleep()
     if getattr(buf_order, job) == 0:
@@ -45,16 +45,18 @@ def _main():
 
     #Main loop of PR
     while not rospy.is_shutdown():
-        #rospy.loginfo('top of main loop')
+        rospy.loginfo('top of main loop')
         #pick up pass ball and throw them to TR (x4)
         numpb = 0
         while step == 0 and numpb < 4:
+            rospy.loginfo('in pick up loop: '+ str(numpb))
             buf_order.pick_ball = 1
             pub.publish(buf_order)
             if waitjob("pick_ball") == 1:
                 errorhandle()
                 pass
             else:
+                rospy.loginfo('success to pick up ball'+str(numpb))
                 buf_order.pass_ball = 1
                 pub.publish(buf_order)
                 if waitjob("pass_ball") == 1:
@@ -68,7 +70,9 @@ def _main():
         #load and kick ball (x3)
         numkb = 0
         while step == 1 and numkb < 3:
+            rospy.loginfo('in loading loop')
             #load
+            rospy.loginfo('load ball')
             buf_order.load_ball = 1
             pub.publish(buf_order)
             if waitjob("load_ball") == 1:

@@ -1,14 +1,51 @@
 <launch>
 
-<node pkg="joy" type="joy_node" name="joy_node">
-<param name="dev" type="string" value="/dev/input/js0"/>
-</node>
+    <node pkg="joy" type="joy_node" name="joy_node">
+        <param name="dev" type="string" value="/dev/input/js0"/>
+    </node>
 
-<node 
-    pkg="pr_main"
-    type="pr_main.py,pr_task.py"
-    name="pr_main"
->
-</node>
+    <node 
+        pkg="pr_main"
+        type="pr_main.py"
+        name="pr_main">
+    </node>
+
+    <node
+        pkg="pr_main"
+        type="pr_task.py"
+        name="pr_task">
+    </node>
+
+	<node pkg="rosserial_python" type="serial_node.py" name="serial_node0">
+		<param name="port" value="/dev/ttyACM0"/>
+	</node>
+
+	<node pkg="pr_kpp_test_joycon" type="pr_kpp_joycon_node" name="pr_kpp_joycon_node"> </node>
+
+	<node pkg="pr_kick" name="kick_node" type="kick_node">
+		<param name="FREQ"   value="10"/>
+		<param name="POW"    value="255"/>
+		<param name="DELAY"  value="10"/>
+	</node>
+
+	<node pkg="pr_pick_pass" name="pick_pass_node" type="pick_pass_node">
+		<param name="FREQ" value="10"/>
+		<param name="POW_LOWER" value="-70"/>
+		<param name="POW_RAISE" value="80"/>
+		<param name="POW_WIND" value="100"/>
+		<param name="DEG_1" value="-140"/>
+		<param name="DEG_2" value="-60"/>
+		<param name="DELAY_SOL" value="50"/>
+		<param name="DELAY_HAND" value="500"/>
+		<param name="DELAY_WIND" value="500"/>
+	</node>
+
+	<node pkg="rosserial_python" type="serial_node.py" name="serial_node1">
+		<param name="port" value="/dev/ttyACM1"/>
+	</node>
+
+	<node pkg="rosserial_python" type="serial_node.py" name="serial_node2">
+		<param name="port" value="/dev/ttyACM2"/>
+	</node>
 
 </launch>

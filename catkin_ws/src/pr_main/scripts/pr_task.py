@@ -24,17 +24,17 @@ pub = rospy.Publisher('pr_main_order', PrMsg, queue_size=1)
 pubpp = rospy.Publisher('pp_tpc', PpMsg, queue_size=1)
 pubkick = rospy.Publisher('kick_tpc', KickMsg, queue_size=1)
 pubmove = rospy.Publisher('move_tpc', MoveMsg,queue_size=1)
-pubload = rospy.Publisher('load_tpc', Int32, queue_size=None)
+pubload = rospy.Publisher('load_tpc', Int32, queue_size=1)
 
 #classes as static valuable
-class numkick: 
-    data = 0
+#class numkick: 
+#    data = 0
 
-class numkick:
+class numpick:
     data = 0
 
 class numload:
-    data = 1
+    data = 0
 
 #callback functions
 def cbf(getmsg):
@@ -43,9 +43,10 @@ def cbf(getmsg):
 
 def cbjoy(joybuf):
     global isfire
+    global startkick
     #set keybind of joy
     isfire = joybuf.buttons[0]
-    startkick - joybuf.buttons[1]
+    startkick = joybuf.buttons[1]
 
 def cbpp(getpp):
     global bufpp
@@ -89,6 +90,7 @@ def errorhandle():
     pubkick.publish(bufkick)
     pubmove.publish(bufmove)
     pubload.publish(bufload)
+    rospy.signal_shutdown('error!')
 
 #main funcion
 def _main():
@@ -101,7 +103,7 @@ def _main():
 
     rospy.init_node('pr_task')
     
-    r = rospy.Rate(10)
+    r = rospy.Rate(100)
 
     global pub
     sub = rospy.Subscriber('pr_main_order', PrMsg, cbf)
@@ -121,11 +123,11 @@ def _main():
         #pick ball///////////////////////////////////////////////////
         if buf.pick_ball == 1:
             #move to pick up point
-            bufmove.moveto = 'pick'+str(numpick)
-            if numkick < 5:
-                numkick+=1
+            bufmove.moveto = 'pick'+str(numpick.data)
+            if numpick.data < 5:
+                numpick.data+=1
             else:
-                numkick=0
+                numpick.data=0
             bufmove.flag = 1
             pubmove.publish(bufmove)
             while bufmove.flag == 1:
@@ -133,6 +135,7 @@ def _main():
             if bufmove.flag < 0:
                 errorhandle()
                 pass
+            rospy.loginfo('move to :pick'+str(numpick.data))
 
             #pick up
             bufpp.pick = 1
@@ -142,6 +145,7 @@ def _main():
             if bufpp.pick < 0:
                 errorhandle()
                 pass
+            rospy.loginfo('pick up the ball')
 
             #move to pass point
             bufmove.moveto = 'pass'
@@ -152,6 +156,7 @@ def _main():
             if bufmove.flag < 0:
                 errorhandle()
                 pass
+            rospy.loginfo('move to pass')
 
             #finish
             buf.pick_ball = 0
@@ -160,13 +165,14 @@ def _main():
         #pass ball//////////////////////////////////////////////////
         if buf.pass_ball == 1 and isfire == 1:
             #wait for reload of pass
-            while bufpp.pass_ball == 2:
+            while bufpp.launch == 2:
                 r.sleep()
             #pass the ball
-            bufpp.pass_ball = 1
+            bufpp.launch = 1
             pubpp.publish(bufpp)
             while bufpp == 1:
                 r.sleep()
+            rospy.loginfo('pass ball')
 
             #finish
             buf.pass_ball = 0
@@ -184,6 +190,7 @@ def _main():
             if bufmove.flag < 0:
                 errorhandle()
                 pass
+            rospy.loginfo('move to kick point')
 
             #kick the ball
             while isfire == 0:  #wait for input from joy
@@ -195,6 +202,7 @@ def _main():
             if bufkick.launch < 0:
                 errorhandle()
                 pass
+            rospy.loginfo('success to kick the ball')
             
             #send finish code here
             buf.kick_ball = 0
@@ -208,6 +216,7 @@ def _main():
             if bufkick < 0:
                 errorhandle()
                 pass
+            rospy.loginfo('reload anyo')
 
             #finish without finish code (already had been sent)
 
@@ -215,28 +224,27 @@ def _main():
         #load kick ball////////////////////////////////////////////////
         if buf.load_ball == 1:
             #load ball
-            bufload = 1 + numload
-            if numload == 0:
+            tmpload = 1 + numload.data
+            if numload.data == 0:
                 #first time, wait for loading to auto loading system by human
-                pubload.publish(2)
-                while bufload == 2:
+                pubload.publish(1)
+                while startkick == 0:
                     r.sleep()
                     #when human send message of end of loading through joycon, go to next step
-                    if startkick == 1:
-                        break
                 if bufload < 0:
                     errorhandle()
-                    pass 
-            if numload < 3:
-                numload += 1
+                    pass
+                rospy.loginfo('setted up kick ball')
+            if numload.data < 3:
+                numload.data += 1
             else:
-                numload = 0
-            pubload.publish(bufload)
-            while bufload != 6:
+                numload.data = 0
+            pubload.publish(tmpload)
+            while bufload == 0:
                 r.sleep()
-            if bufload < 0:
-                errorhandle()
-                pass
+                if bufload < 0:
+                    errorhandle()
+            rospy.loginfo('load the ball :'+str(numload.data))
 
             #finish
             buf.load_ball = 0
