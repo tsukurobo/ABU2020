@@ -24,6 +24,11 @@ def waitjob(job):
         return 1
 
 
+#errorhandle function
+def errorhandle():
+    rospy.signal_shutdown('error')
+
+
 #main function
 def _main():
     rospy.init_node("pr_main")
@@ -47,13 +52,13 @@ def _main():
             buf_order.pick_ball = 1
             pub.publish(buf_order)
             if waitjob("pick_ball") == 1:
-                #error
+                errorhandle()
                 pass
             else:
                 buf_order.pass_ball = 1
                 pub.publish(buf_order)
                 if waitjob("pass_ball") == 1:
-                    #error
+                    errorhandle()
                     pass
                 else:
                     rospy.loginfo("success to pass the ball")
@@ -67,14 +72,14 @@ def _main():
             buf_order.load_ball = 1
             pub.publish(buf_order)
             if waitjob("load_ball") == 1:
-                #error
+                errorhandle()
                 pass
             else:
                 #kick
                 buf_order.kick_ball = 1
                 pub.publish(buf_order)
                 if waitjob("kick_ball") == 1:
-                    #error
+                    errorhandle()
                     pass
                 else:
                     numkb += 1
@@ -88,7 +93,7 @@ def _main():
             buf_order.load_ball = 1
             pub.publish(buf_order)
             if waitjob("load_ball") == 1:
-                #error
+                errorhandle()
                 pass
             else:
                 pass
@@ -97,7 +102,7 @@ def _main():
             buf_order.kick_ball = 1
             pub.publish(buf_order)
             if waitjob("kick_ball") == 1:
-                #error
+                errorhandle()
                 pass
             else:
                 rospy.loginfo("success to kick the ball (extra)")

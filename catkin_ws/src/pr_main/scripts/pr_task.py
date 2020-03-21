@@ -10,17 +10,31 @@ from pr_msg.msg import PrMsg
 from pr_msg.msg import PpMsg
 from pr_msg.msg import KickMsg
 from pr_msg.msg import MoveMsg
-from pr_msg.msg import LoadMsg
 
 buf = PrMsg()
 bufpp = PpMsg()
 bufkick = KickMsg()
 bufmove = MoveMsg()
-bufload = LoadMsg()
-isfire = 0
+bufload = 0
+isfire = 0  #trigger of pass ball or kick ball
+startkick = 0 #trigger of biginning of kick phase 
 
+#publishers
+pub = rospy.Publisher('pr_main_order', PrMsg, queue_size=1)
+pubpp = rospy.Publisher('pp_tpc', PpMsg, queue_size=1)
+pubkick = rospy.Publisher('kick_tpc', KickMsg, queue_size=1)
+pubmove = rospy.Publisher('move_tpc', MoveMsg,queue_size=1)
+pubload = rospy.Publisher('load_tpc', Int32, queue_size=None)
+
+#classes as static valuable
 class numkick: 
     data = 0
+
+class numkick:
+    data = 0
+
+class numload:
+    data = 1
 
 #callback functions
 def cbf(getmsg):
@@ -29,7 +43,9 @@ def cbf(getmsg):
 
 def cbjoy(joybuf):
     global isfire
+    #set keybind of joy
     isfire = joybuf.buttons[0]
+    startkick - joybuf.buttons[1]
 
 def cbpp(getpp):
     global bufpp
@@ -47,28 +63,57 @@ def cbload(getload):
     global bufload
     bufload = getload
 
+#error handle function
+#send -1
+def errorhandle():
+    global pub
+    global pubpp
+    global pubkick
+    global pubmove
+    global pubload
+    buf = PrMsg()
+    buf.kick_ball = -1
+    buf.load_ball = -1
+    buf.pass_ball = -1
+    buf.pick_ball = -1
+    bufpp = PpMsg()
+    bufpp.pick = -1
+    bufpp.launch = -1
+    bufkick = KickMsg()
+    bufkick.wind = -1
+    bufkick.launch = -1
+    bufload = -1
+
+    pub.publish(buf)
+    pubpp.publish(bufpp)
+    pubkick.publish(bufkick)
+    pubmove.publish(bufmove)
+    pubload.publish(bufload)
+
+#main funcion
 def _main():
     global buf
     global bufpp
     global bufkick
     global bufload
     global isfire
+    global startkick
 
     rospy.init_node('pr_task')
     
     r = rospy.Rate(10)
 
-    pub = rospy.Publisher('pr_main_order', PrMsg, queue_size=1)
+    global pub
     sub = rospy.Subscriber('pr_main_order', PrMsg, cbf)
     subjoy = rospy.Subscriber('joy', Joy, cbjoy)
-    pubpp = rospy.Publisher('pp_tpc', PpMsg, queue_size=1)
+    global pubpp
     subpp = rospy.Subscriber('pp_tpc', PpMsg, cbpp)
-    pubkick = rospy.Publisher('kick_tpc', KickMsg, queue_size=1)
+    global pubkick
     subkick = rospy.Subscriber('kick_tpc', KickMsg, cbkick)
-    pubmove = rospy.Publisher('move_tpc', MoveMsg,queue_size=1)
+    global pubmove
     submove = rospy.Subscriber('move_tpc', MoveMsg, cbmove)
-    pubload = rospy.Publisher('load_tpc', LoadMsg, queue_size=None)
-    subload = rospy.Subscriber('load_tpc', LoadMsg, cbload)
+    global pubload
+    subload = rospy.Subscriber('load_tpc', Int32, cbload)
 
     while not rospy.is_shutdown():
         rospy.loginfo('top of main loop')
@@ -76,13 +121,17 @@ def _main():
         #pick ball///////////////////////////////////////////////////
         if buf.pick_ball == 1:
             #move to pick up point
-            bufmove.moveto = 'pick'
+            bufmove.moveto = 'pick'+str(numpick)
+            if numkick < 5:
+                numkick+=1
+            else:
+                numkick=0
             bufmove.flag = 1
             pubmove.publish(bufmove)
             while bufmove.flag == 1:
                 r.sleep()
             if bufmove.flag < 0:
-                #error
+                errorhandle()
                 pass
 
             #pick up
@@ -91,7 +140,7 @@ def _main():
             while bufpp.pick == 1:
                 r.sleep()
             if bufpp.pick < 0:
-                #error
+                errorhandle()
                 pass
 
             #move to pass point
@@ -101,7 +150,7 @@ def _main():
             while bufmove.flag == 1:
                 r.sleep()
             if bufmove.flag < 0:
-                #error
+                errorhandle()
                 pass
 
             #finish
@@ -133,7 +182,7 @@ def _main():
             while bufmove.flag == 1:
                 r.sleep()
             if bufmove.flag < 0:
-                #error
+                errorhandle()
                 pass
 
             #kick the ball
@@ -144,7 +193,7 @@ def _main():
             while bufkick.launch == 1:
                 r.sleep()
             if bufkick.launch < 0:
-                #error
+                errorhandle()
                 pass
             
             #send finish code here
@@ -157,7 +206,7 @@ def _main():
             while bufkick.wind == 1:
                 r.sleep()
             if bufkick < 0:
-                #error
+                errorhandle()
                 pass
 
             #finish without finish code (already had been sent)
@@ -165,37 +214,28 @@ def _main():
 
         #load kick ball////////////////////////////////////////////////
         if buf.load_ball == 1:
-            #set or reset tee
-            if numkick == 0:
-                #first time: set tee
-                bufload.tee_set = 1
-                pubload.publish(bufload)
-                while bufload.tee_set == 1:
-                    r.sleep()
-                if bufload.tee_set < 0:
-                    #error
-                    pass
-                numkick+=1
-            if numkick < 3:
-                #reset tee
-                bufload.tee_wind = 1
-                pubload.publish(bufload)
-                while bufload.tee_wind == 1:
-                    r.sleep()
-                if bufload.tee_wind < 0:
-                    #error
-                    pass
-                numkick += 1
-            else:
-                numkick = 0
-            
             #load ball
-            bufload.load = 1
+            bufload = 1 + numload
+            if numload == 0:
+                #first time, wait for loading to auto loading system by human
+                pubload.publish(2)
+                while bufload == 2:
+                    r.sleep()
+                    #when human send message of end of loading through joycon, go to next step
+                    if startkick == 1:
+                        break
+                if bufload < 0:
+                    errorhandle()
+                    pass 
+            if numload < 3:
+                numload += 1
+            else:
+                numload = 0
             pubload.publish(bufload)
-            while bufload.load == 1:
+            while bufload != 6:
                 r.sleep()
             if bufload < 0:
-                #error
+                errorhandle()
                 pass
 
             #finish
