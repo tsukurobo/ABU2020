@@ -5,7 +5,7 @@
 #include <ros.h>
 #include <std_msgs/Int16MultiArray.h>
 //debug
-#include <std_msgs/Int64.h>
+//#include <std_msgs/Int64.h>
 
 //constant
 const uint8_t ADDR_PICK = 0x13; //pick up motor address of AVR
@@ -25,6 +25,8 @@ int pw_raise = 0; //motor power of raise ball (-255~255)
 int pw_wind  = 0; //motor power of wind rope (-255~255)
 int target_deg_1 = 0; //degree of lower hand for pick up[deg]
 int target_deg_2 = 0; //degree of lower hand for pick up[deg]
+int target_omg   = 0; 
+int gainP        = 0;
 int delay_sol  = 0; //delay time of solonoid on [milli sec]
 int delay_hand = 0; //delay time of hand when pick up [milli sec]
 int delay_wind = 0; //delay time of wait wind between normal and reverse[milli sec]
@@ -47,8 +49,8 @@ IseMotorDriver mot_pick(ADDR_PICK);
 IseMotorDriver mot_pass(ADDR_PASS);
 
 //debug
-std_msgs::Int64 debug;
-ros::Publisher pubD("debug_tpc",&debug);
+//std_msgs::Int64 debug;
+//ros::Publisher pubD("debug_tpc",&debug);
   
 void setup(){
   Wire.begin(); 
@@ -58,7 +60,7 @@ void setup(){
   nh.subscribe(sub);
   nh.advertise(pub);
   //debug
-  nh.advertise(pubD);
+  //nh.advertise(pubD);
 
   data.data_length = 2;
   data.data = (int16_t*)malloc(sizeof(int16_t)*2);
@@ -98,11 +100,16 @@ void loop(){
   delay(MAIN_DELAY); 
 }
 
-//pick up
+////////////////////////////////////////////////////////////////////
+//pick up///////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
 void picking_up(){
   //value of touch sensor (OFF:LOW ON:HIGH) 
   long enc = 0;
-
+  long enc_old = 0;
+  float omg = 0;
+  float omg_old = 0;
+  
   //init this function
   nh.spinOnce();
   if(order_pick<1) goto RESET; //ここだけ1未満（ラグの影響を回避するため）
@@ -133,13 +140,12 @@ void picking_up(){
   delay(delay_hand);
   
   //raise hand
-    //raise hand
   do{
     nh.spinOnce();
     if(order_pick<0) goto RESET;
 
-    mot_pick.setSpeed(pw_raise);
     enc = mot_pick.encorder();
+    mot_pick.setSpeed(pw_raise);
     delay(MAIN_DELAY);
   }while(enc < target_deg_2*(ENC_PER_ROT/360.0));
 
@@ -155,7 +161,9 @@ RESET:
   delay(500);
 }
 
-//launch
+////////////////////////////////////////////////////////////////////////
+//launch////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void launching(){
   //value of touch sensor (OFF:LOW ON:HIGH) 
   long enc = 0;
@@ -207,8 +215,8 @@ void launching(){
     mot_pass.setSpeed(pw_wind);
 
     enc = mot_pass.encorder();
-    debug.data = enc;
-    pubD.publish(&debug);
+    //debug.data = enc;
+    //pubD.publish(&debug);
   
     delay(MAIN_DELAY);
   }while(digitalRead(TOUCH_PIN) == HIGH);
@@ -222,8 +230,8 @@ void launching(){
     mot_pass.setSpeed(-pw_wind);
     enc = mot_pass.encorder();
     
-    debug.data = enc;
-    pubD.publish(&debug);
+    //debug.data = enc;
+    //pubD.publish(&debug);
     
     delay(MAIN_DELAY);
   }while(enc < 0);

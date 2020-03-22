@@ -197,3 +197,5 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+add_executable(load_ball_node src/load_ball_node.cpp)
+target_link_libraries(load_ball_node ${catkin_LIBRARIES})
