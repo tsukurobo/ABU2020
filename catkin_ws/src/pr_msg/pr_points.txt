@@ -1,0 +1,14 @@
+移動ポイント
+
+ボールをピックアップする場所
+pick1
+pick2
+pick3
+pick4
+pick5
+
+パスする場所
+pass
+
+キック
+kick
