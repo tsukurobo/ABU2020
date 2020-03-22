@@ -28,10 +28,10 @@ const uint8_t ADDR_LIFT  = 0x21; //lift move motor address of AVR
 const uint8_t ADDR_GRASP = 0x22; //grasp motor address of AVR
 const uint8_t ADDR_TEE   = 0x23; //tee motor address of AVR
 //pin setting
-const int PIN_SW_RIGHT = 1;
-const int PIN_SW_LEFT  = 2;
-const int PIN_SW_HOLD  = 3;
-const int PIN_SW_OPEN  = 4;
+const int PIN_SW_RIGHT = 11;
+const int PIN_SW_LEFT  = 8;
+const int PIN_SW_HOLD  = 2;
+const int PIN_SW_OPEN  = 5;
 //others
 const int MAIN_DELAY = 10; //[milli sec]
 const int TOUCH_OFF  = LOW;
@@ -119,8 +119,8 @@ void loop(){
       break;
 
     case TASK_SETTING_1:
-      go_right();
-      go_buttom();
+      //go_right();
+      //go_buttom();
       open_open();
       go_top();
       go_left();
@@ -165,8 +165,10 @@ void rtoo(){
     nh.spinOnce();
     if(order_task < 0) break;
     
-    enc_lift = mot_lift.encorder();
-    enc_tee  = mot_tee.encorder();
+    //enc_lift = mot_lift.encorder();
+    
+    //enc_tee  = mot_tee.encorder();
+    
     
     digitalRead(PIN_SW_RIGHT)==TOUCH_OFF ? slide_pw=-MOT_SLIDE_PW : slide_pw=0;
     enc_lift < ENC_LIFT_TOP              ?  lift_pw=MOT_RAISE_PW  :  lift_pw=0;
@@ -190,6 +192,8 @@ void hold_hold(){
   while(digitalRead(PIN_SW_HOLD)==TOUCH_OFF || enc_tee>ENC_TEE_HOLD){
     nh.spinOnce();
     if(order_task < 0) break;
+
+
     
     enc_tee = mot_tee.encorder();
     
