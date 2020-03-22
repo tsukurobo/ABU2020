@@ -8,6 +8,7 @@
 #include<math.h>
 #include<vector>
 #include<iostream>
+//#include<> //pr_msg?
 //経路追従及び障害物回避をDWAを用いて行うノード: pr_motion_planner
 
 using namespace std;
@@ -20,8 +21,8 @@ public:
   double accx_max, accy_max;
   double vx_max, vy_max;
   double encdt,dt; //エンコーダ周期,制御周期
-  double currvx, currvy;
-  double wheel_radius, wheel2center, resolution;
+  //double currvx, currvy;
+  //double wheel_radius, wheel2center, resolution;
   double alpha, beta, gamma;
   int sample_rate;
   int skip; //nav_msgs::Path中のwaypointをいくつ飛ばしで使用するか
@@ -30,7 +31,8 @@ public:
   //int isReachedGoal; //ゴールに到着したかを判定する
   int startFlag;//ナビゲーション開始のフラグ
 
-  ros::Publisher vel_pub;
+  ros::Publisher vel_pub, end_pub;
+  //pr_Msg::??? end_flag;
   double ctrvx_max, ctrvx_min, ctrvy_max, ctrvy_min;
   double vx_accmax, vx_accmin, vy_accmax, vy_accmin;
   double dx,dy;
@@ -52,9 +54,9 @@ public:
 
   void sendVelCmd(void);
   void setPath(const nav_msgs::Path::ConstPtr& path);
-  void encCb(const pr::RawEncoder::ConstPtr& encdata);
+  //void encCb(const pr::RawEncoder::ConstPtr& encdata);
   void setCurrPos(const geometry_msgs::Vector3::ConstPtr& _pos);
-  void setOmniParams(double r, double wh2c, double resol, double edt);
+  //void setOmniParams(double r, double wh2c, double resol, double edt);
   void setDWAParams(double acx_mx, double acy_mx, double maxvx, double maxvy, double t, int sr, double a, double b, double c, int skp,
     double _kp, double _r, double obs);
   void getLFMap(void);
@@ -114,6 +116,8 @@ void DWA::sendVelCmd(void){
         velcmd.linear.y = 0.0;
         velcmd.angular.z = 0.0;
         vel_pub.publish(velcmd);
+        //end_flag.*** = 0;
+        //end_pub.publish(end_flag);
         cout << "motion_planner: navigation ended" << endl;
         return;
      }
@@ -199,7 +203,7 @@ void DWA::sendVelCmd(void){
 
 }
 
-void DWA::encCb(const pr::RawEncoder::ConstPtr& enc){
+/*void DWA::encCb(const pr::RawEncoder::ConstPtr& enc){
   //4輪オムニの運動モデルを用いる
   double vel1 = 2.0*3.1415*wheel_radius*enc->e1/(resolution*encdt);
   double vel2 = 2.0*3.1415*wheel_radius*enc->e2/(resolution*encdt);
@@ -214,7 +218,7 @@ void DWA::setOmniParams(double r, double wh2c, double resol, double edt){
   wheel2center = wh2c;
   resolution = resol;
   encdt = edt;
-}
+}*/
 
 void DWA::getLFMap(void){
   boost::shared_ptr<nav_msgs::OccupancyGrid const> mapptr;
@@ -283,6 +287,7 @@ void DWA::setCurrPos(const geometry_msgs::Vector3::ConstPtr& _pos){
 
 void DWA::initPub(ros::NodeHandle &n){
   vel_pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
+  //end_pub = n.advertise<***>("", 10);
 }
 
 
@@ -290,9 +295,9 @@ DWA dwa;
 void _setPath(const nav_msgs::Path::ConstPtr& path){
   dwa.setPath(path);
 }
-void _encCb(const pr::RawEncoder::ConstPtr& enc){
+/*void _encCb(const pr::RawEncoder::ConstPtr& enc){
   dwa.encCb(enc);
-}
+}*/
 
 void _posCb(const geometry_msgs::Vector3::ConstPtr& _pos){
   dwa.setCurrPos(_pos);
@@ -306,7 +311,7 @@ int main(int argc, char **argv){
   ros::init(argc, argv, "pr_motion_planner");
   ros::NodeHandle nh;
 
-  double maxvx, maxvy, ctrl_t, alpha, beta, gamma, kp, r;
+  double maxvx, maxvy, ctrl_t, alpha, beta, gamma, kp, r, obs_thr;
   int sample_rate, skip;
   double w2c, wr, enc_resol;
 
@@ -323,12 +328,13 @@ int main(int argc, char **argv){
   nh.getParam("/const/spec/wheel_radius", wr);
   nh.getParam("/const/spec/encoder_resolution", enc_resol);
   nh.getParam("/const/dwa/waypoint_range", r);
-  dwa.setDWAParams(1.0, 1.0, maxvx, maxvy, ctrl_t, sample_rate, alpha, beta, gamma, skip, kp, r, 0.30);//左から順に、x,y軸方向の最大加速度、x,y軸方向の最大速度、制御周期(秒)、サンプリングレート、評価関数の各要素の重み、パスを構成する点をいくつ飛ばしで用いるか,回転角度制御(P制御)におけるPゲイン
-  dwa.setOmniParams(wr, w2c, enc_resol, 0.005);
+  nh.getParam("/const/dwa/obstacle_thresh", obs_thr);
+  dwa.setDWAParams(1.0, 1.0, maxvx, maxvy, ctrl_t, sample_rate, alpha, beta, gamma, skip, kp, r, obs_thr);//左から順に、x,y軸方向の最大加速度、x,y軸方向の最大速度、制御周期(秒)、サンプリングレート、評価関数の各要素の重み、パスを構成する点をいくつ飛ばしで用いるか,回転角度制御(P制御)におけるPゲイン
+  //dwa.setOmniParams(wr, w2c, enc_resol, 0.005);
   dwa.initPub(nh);
 
   ros::Subscriber path_sub = nh.subscribe("path", 10, _setPath);
-  ros::Subscriber enc_sub = nh.subscribe("raw_encoder", 1000, _encCb);
+  //ros::Subscriber enc_sub = nh.subscribe("raw_encoder", 1000, _encCb);
   ros::Subscriber pos_sub = nh.subscribe("current_pos", 1000, _posCb);
   ros::Timer timer = nh.createTimer(ros::Duration(ctrl_t), timerCb);
 

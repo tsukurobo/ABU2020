@@ -76,7 +76,7 @@ public:
     int map_w = 0, map_h = 0; //マップの縦・横のピクセル数
     double origin_x = 0.0, origin_y = 0.0; //map座標系の原点から見た、マップの左端の座標
     int nodeNum = 0;
-	int obs_thresh = 90;
+	double obs_thresh;
     
     double heuristic(vector<int> p, vector<int> goalp, bool mode){ //ヒューリスティック関数。移動コストの付け方によって変える。
 		if (mode == true){ //if true, uses A* algolithm
@@ -97,7 +97,7 @@ public:
 	  		pix_x = n.pos[0] + (int)dp[i][0];
 	  		pix_y = n.pos[1] + (int)dp[i][1];
 	  
-			if (map.data[pix_y*map_w + pix_x] == 0){
+			if (map.data[pix_y*map_w + pix_x] < (int)(100.0*(1.0 - obs_thresh)) && map.data[pix_y*map_w + pix_x] >= 0){
 	        	oss.str("");
 	        	oss.clear(stringstream::goodbit);
 				oss << pix_x << "," << pix_y;
@@ -120,6 +120,7 @@ public:
     
     nav_msgs::Path solve(vector<double> start, vector<double> end, bool mode){ //スタートノードとエンドノード間の最適経路を出力
 	string name;
+	int count = 0; //デバッグ用変数
 	double cost;
 	double move_cost;
 	string to;
@@ -129,6 +130,7 @@ public:
 	ostringstream oss;
 	unordered_map<string, Node> mp;
 	nav_msgs::Path path;
+	
 
 	gpp[0] = (int)((fabs(origin_x) + end[0])/m_per_pixel) - 1;
 	gpp[1] = (int)((fabs(origin_y) + end[1])/m_per_pixel) - 1;
@@ -137,7 +139,7 @@ public:
 	Node start_n;
     start_n.pos[0] = (int)((fabs(origin_x) + start[0])/m_per_pixel) - 1;//スタートノードの座標をピクセル座標に変換
 	start_n.pos[1] = (int)((fabs(origin_y) + start[1])/m_per_pixel) - 1;
-	if(map.data[gpp[1]*map_w + gpp[0]] >=  70 || map.data[start_n.pos[1]*map_w + start_n.pos[0]] >= 70 ){ //ゴールやスタート地点にロボットが存在できない場合、パスは計算しない
+	if(map.data[gpp[1]*map_w + gpp[0]] >=  (int)(100.0*(1.0 - obs_thresh)) || map.data[start_n.pos[1]*map_w + start_n.pos[0]] >= (int)(100.0*(1.0 - obs_thresh)) ){ //ゴールやスタート地点にロボットが存在できない場合、パスは計算しない
 		cout << "global_planner: invalid goal or start point" << endl;
 		path.header.seq = 100;
 		return path;
@@ -149,7 +151,7 @@ public:
 	oss << start_n.pos[0] << "," << start_n.pos[1]; //連想配列用のキーの作成
     mp[oss.str()] = start_n;//連想配列と優先度付きキューにスタートノードを追加
 	q.push(start_n);
-	//cout << "global_planner: created a start node" << endl;
+	cout << "global_planner: created a start node" << endl;
 
 	//アルゴリズムの本体
 	while (1){
@@ -163,21 +165,22 @@ public:
 	    name = oss.str();
 	    
 	    examine_surrounding_pixels(mp[name], mp);//ノードの周辺にあるピクセルを調べる.と同時に、適切なノードの生成も行う
-	    
+	    //cout << "where is the bug?" << endl;
 	    for (auto itr = mp[name].edges.begin(); itr != mp[name].edges.end(); ++itr){//確定ノードに接続されている全ノードに対し、次を実行
-		move_cost = itr->second + mp[name].move_cost;
-		to = itr->first;
-		cost = heuristic(mp[to].pos, gpp, mode) + move_cost;
+			move_cost = itr->second + mp[name].move_cost;
+			to = itr->first;
+			cost = heuristic(mp[to].pos, gpp, mode) + move_cost;
 
-		if (cost < mp[to].cost || mp[to].cost < 0){//ノードのコストの更新
-		    mp[to].cost = cost;
-		    mp[to].move_cost = move_cost;
-		    q.push(mp[to]);
-		    mp[to].from = name;
-		}
+			if (cost < mp[to].cost || mp[to].cost < 0){//ノードのコストの更新
+		    	mp[to].cost = cost;
+		    	mp[to].move_cost = move_cost;
+		    	q.push(mp[to]);
+		    	mp[to].from = name;
+			}
 	    }
+		//cout << count++ << endl;
 	}
-	//cout << "global_planner: finished calculation" << endl;
+	cout << "global_planner: finished calculation" << endl;
 	//パスと最小コストの出力
 	Result_Path tmp;
 	oss.str("");
@@ -217,7 +220,7 @@ public:
 	path.poses[path.poses.size() - 1].pose.orientation.z = end[2];
 	
 	nodeNum = mp.size();
-	//cout << "global_planner: created a path message" << endl;
+	cout << "global_planner: created a path message" << endl;
 	return path;
 	
     }
@@ -251,7 +254,7 @@ public:
 
 A_star a_star;
 ros::Publisher path_pub;
-int flag = 0; //whether publish a path or not
+//int flag = 0; //whether publish a path or not
 nav_msgs::Path path;
 int isMapLoaded = 0;
 vector<double> currpos(2);
@@ -273,7 +276,7 @@ void goalcb(const geometry_msgs::Vector3::ConstPtr& goalpos){
      }
 
     if(isMapLoaded){
-	 	flag = 1;
+	 	//flag = 1;
 	 	time_s = ros::Time::now().toSec();
 	 	path = a_star.solve(spos,gpos,true);
 	 	if(path.header.seq == 0){
@@ -307,6 +310,8 @@ int main(int argc, char **argv){
     goal_sub = nh.subscribe("goal",10,goalcb);
     pos_sub = nh.subscribe("current_pos", 1000, posCb);
     
+	nh.getParam("/const/dwa/obstacle_thresh", a_star.obs_thresh);
+
     /*while (ros::ok()){
        try{
            tf_listener.lookupTransform("map", "base_link", ros::Time(0), trans);

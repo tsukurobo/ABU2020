@@ -24,7 +24,8 @@ const: {
      coeff_dist: 0.5,
      skip_wp: 20,
      kp: 0.5,
-     waypoint_range: 0.25
+     waypoint_range: 0.25,
+     obstacle_thresh: 0.4
   },
   smp: {
      linear_kp: 0.8,
@@ -34,7 +35,7 @@ const: {
      max_ang_vel: 1.0
   },
   LF_creator: {
-     range: 25
+     range: 27
   },
   i2c_addr: [ 0x61, 0x22, 0x33, 0x12],
   urg_x: -0.44,
