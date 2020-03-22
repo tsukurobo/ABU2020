@@ -11,13 +11,16 @@
 		<param name="MOT_LOWER_PW"    value="-50"/>
 		<param name="MOT_GRASP_PW"    value="50"/>
 		<param name="MOT_TEE_PW"      value="50"/>
-		<param name="ENC_LIFT_TOP"    value="-500"/>
-		<param name="ENC_LIFT_MIDDLE" value="-10000"/>
-		<param name="ENC_LIFT_BUTTOM" value="-30000"/>
-		<param name="ENC_TEE_HOLD"    value="500"/>
-		<param name="ENC_TEE_OPEN"    value="10000"/>
+		<param name="ENC_LIFT_TOP"    value="-100"/>
+		<param name="ENC_LIFT_MIDDLE" value="-12976"/>
+		<param name="ENC_LIFT_BUTTOM" value="-18400"/>
+		<param name="ENC_TEE_HOLD"    value="50"/>
+		<param name="ENC_TEE_OPEN"    value="3100"/>
 	</node>
 	<node pkg="rosserial_python" type="serial_node.py" name="serial_node0">
 		<param name="port" value="/dev/ttyACM0"/>
+	</node>
+	<node pkg="rosserial_python" type="serial_node.py" name="serial_node1">
+		<param name="port" value="/dev/ttyACM1"/>
 	</node>
 </launch>

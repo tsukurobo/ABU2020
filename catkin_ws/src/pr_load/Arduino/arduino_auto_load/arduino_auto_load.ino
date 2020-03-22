@@ -13,6 +13,7 @@
 #include <ros.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/Int32MultiArray.h>
+#include <std_msgs/Int64MultiArray.h>
 
 ////constant
 //task
@@ -57,6 +58,7 @@ long enc_tee = 0;
 
 //function prototype
 void callback(const std_msgs::Int32MultiArray& msg);
+void get_enc(const std_msgs::Int64MultiArray& msg);
 void finish_task();
 void all_stop();
 void rtoo();
@@ -73,6 +75,7 @@ ros::NodeHandle nh;
 std_msgs::Int32 data_fin;
 ros::Publisher pub("losd_fin",&data_fin);
 ros::Subscriber<std_msgs::Int32MultiArray> sub("load_order",&callback);
+ros::Subscriber<std_msgs::Int64MultiArray> sub_enc("enc",&get_enc);
 
 IseMotorDriver mot_slide(ADDR_SLIDE);
 IseMotorDriver mot_lift(ADDR_LIFT);
@@ -86,6 +89,7 @@ void setup(){
   nh.initNode();
   nh.advertise(pub);
   nh.subscribe(sub);
+  nh.subscribe(sub_enc);
   
   order_task = 0;
   data_fin.data = 0;
@@ -119,8 +123,8 @@ void loop(){
       break;
 
     case TASK_SETTING_1:
-      //go_right();
-      //go_buttom();
+      go_right();
+      go_buttom();
       open_open();
       go_top();
       go_left();
@@ -166,9 +170,7 @@ void rtoo(){
     if(order_task < 0) break;
     
     //enc_lift = mot_lift.encorder();
-    
     //enc_tee  = mot_tee.encorder();
-    
     
     digitalRead(PIN_SW_RIGHT)==TOUCH_OFF ? slide_pw=-MOT_SLIDE_PW : slide_pw=0;
     enc_lift < ENC_LIFT_TOP              ?  lift_pw=MOT_RAISE_PW  :  lift_pw=0;
@@ -192,10 +194,8 @@ void hold_hold(){
   while(digitalRead(PIN_SW_HOLD)==TOUCH_OFF || enc_tee>ENC_TEE_HOLD){
     nh.spinOnce();
     if(order_task < 0) break;
-
-
     
-    enc_tee = mot_tee.encorder();
+    //enc_tee = mot_tee.encorder();
     
     digitalRead(PIN_SW_HOLD)==TOUCH_OFF ? grasp_pw=MOT_GRASP_PW : grasp_pw=0;
     enc_tee > ENC_TEE_HOLD              ?   tee_pw=-MOT_TEE_PW  :   tee_pw=0;   
@@ -216,7 +216,7 @@ void open_open(){
     nh.spinOnce();
     if(order_task < 0) break;
     
-    enc_tee  = mot_tee.encorder();
+    //enc_tee  = mot_tee.encorder();
     
     digitalRead(PIN_SW_OPEN)==TOUCH_OFF  ? grasp_pw=-MOT_GRASP_PW : grasp_pw=0;
     enc_tee  < ENC_TEE_OPEN              ?   tee_pw=MOT_TEE_PW    :   tee_pw=0;   
@@ -304,4 +304,9 @@ void callback(const std_msgs::Int32MultiArray& msg){
   ENC_LIFT_BUTTOM = msg.data[8];
   ENC_TEE_HOLD    = msg.data[9];
   ENC_TEE_OPEN    = msg.data[10];
+}
+
+void get_enc(const std_msgs::Int64MultiArray& msg){
+  enc_lift = msg.data[0];
+  enc_tee  = msg.data[1];
 }
