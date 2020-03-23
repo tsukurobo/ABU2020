@@ -1,0 +1,62 @@
+#include <ros/ros.h>
+#include <std_msgs/Int32MultiArray.h>
+#include <std_msgs/Int32.h>
+#include <sstream>
+
+//global variable
+ros::Publisher  pub_param;
+int FREQ = 1;  //frequency of main loop [Hz]
+int MOT_SLIDE_PW;
+int MOT_RAISE_PW;
+int MOT_LOWER_PW;
+int MOT_GRASP_PW;
+int MOT_TEE_PW;
+int ENC_LIFT_TOP;
+int ENC_LIFT_MIDDLE;
+int ENC_LIFT_BUTTOM;
+int ENC_TEE_HOLD;
+int ENC_TEE_OPEN;
+
+int main(int argc, char **argv){
+	//node init
+	ros::init(argc,argv,"load_ball_node");
+	ros::NodeHandle nh;
+
+	pub_param = nh.advertise <std_msgs::Int32MultiArray>("load_param",10);
+	std_msgs::Int32MultiArray data_param;
+
+	//parameter
+	nh.getParam("load_ball_node/MOT_SLIDE_PW",MOT_SLIDE_PW);
+	nh.getParam("load_ball_node/MOT_RAISE_PW",MOT_RAISE_PW);
+	nh.getParam("load_ball_node/MOT_LOWER_PW",MOT_LOWER_PW);
+	nh.getParam("load_ball_node/MOT_GRASP_PW",MOT_GRASP_PW);
+	nh.getParam("load_ball_node/MOT_TEE_PW",MOT_TEE_PW);
+	nh.getParam("load_ball_node/ENC_LIFT_TOP",ENC_LIFT_TOP);
+	nh.getParam("load_ball_node/ENC_LIFT_MIDDLE",ENC_LIFT_MIDDLE);
+	nh.getParam("load_ball_node/ENC_LIFT_BUTTOM",ENC_LIFT_BUTTOM);
+	nh.getParam("load_ball_node/ENC_TEE_HOLD",ENC_TEE_HOLD);
+	nh.getParam("load_ball_node/ENC_TEE_OPEN",ENC_TEE_OPEN);
+
+	data_param.data.resize(10);
+	data_param.data[0] = MOT_SLIDE_PW;
+	data_param.data[1] = MOT_RAISE_PW;
+	data_param.data[2] = MOT_LOWER_PW;
+	data_param.data[3] = MOT_GRASP_PW;
+	data_param.data[4] = MOT_TEE_PW;
+	data_param.data[5] = ENC_LIFT_TOP;
+	data_param.data[6] = ENC_LIFT_MIDDLE;
+	data_param.data[7] = ENC_LIFT_BUTTOM;
+	data_param.data[8] = ENC_TEE_HOLD;
+	data_param.data[9] = ENC_TEE_OPEN;
+
+	ros::Rate loop_rate(FREQ);
+	
+	//node body
+	while(ros::ok()){
+		ros::spinOnce();
+		pub_param.publish(data_param);
+		loop_rate.sleep();
+	}
+
+	return 0;
+}

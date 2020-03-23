@@ -11,27 +11,16 @@
 		<param name="DELAY"  value="10"/>
 	</node>
 
-	<node pkg="pr_pick_pass" name="pick_pass_node" type="pick_pass_node">
-		<param name="FREQ" value="100"/>
-		<param name="POW_LOWER" value="-70"/>
-		<param name="POW_RAISE" value="80"/>
-		<param name="POW_WIND" value="100"/>
-		<param name="DEG_1" value="-140"/>
-		<param name="DEG_2" value="-60"/>
-		<param name="DELAY_SOL" value="50"/>
-		<param name="DELAY_HAND" value="500"/>
-		<param name="DELAY_WIND" value="500"/>
-	</node>
 	<node pkg="pr_load" name="load_ball_node" type="load_ball_node">
 		<param name="MOT_SLIDE_PW"    value="-255"/>
 		<param name="MOT_RAISE_PW"    value="-200"/>
 		<param name="MOT_LOWER_PW"    value="150"/>
 		<param name="MOT_GRASP_PW"    value="150"/>
-		<param name="MOT_TEE_PW"      value="130"/>
+		<param name="MOT_TEE_PW"      value="200"/>
 		<param name="ENC_LIFT_TOP"    value="-100"/>
 		<param name="ENC_LIFT_MIDDLE" value="-12550"/>
 		<param name="ENC_LIFT_BUTTOM" value="-17000"/>
-		<param name="ENC_TEE_HOLD"    value="50"/>
+		<param name="ENC_TEE_HOLD"    value="300"/>
 		<param name="ENC_TEE_OPEN"    value="3100"/>
 	</node>
 
@@ -43,9 +32,6 @@
 	</node>
 	<node pkg="rosserial_python" type="serial_node.py" name="serial_node2">
 		<param name="port" value="/dev/ttyACM2"/>
-	</node>
-	<node pkg="rosserial_python" type="serial_node.py" name="serial_node3">
-		<param name="port" value="/dev/ttyACM3"/>
 	</node>
 </launch>
 
