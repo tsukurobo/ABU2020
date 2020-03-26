@@ -223,6 +223,19 @@ void launching(){
   
   delay(delay_wind);
 
+  mot_pass.setSpeed(0);
+  
+  //raise hand
+  do{
+    nh.spinOnce();
+    if(order_launch<0) goto RESET;
+
+    mot_pick.setSpeed(pw_raise);
+    enc = mot_pick.encorder();
+    delay(MAIN_DELAY);
+  }while(enc < target_deg_2*(ENC_PER_ROT/360.0));
+
+  //wind reverse
   do{
     nh.spinOnce();
     if(order_launch<0) goto RESET;
@@ -235,18 +248,6 @@ void launching(){
     
     delay(MAIN_DELAY);
   }while(enc < 0);
-
-  mot_pass.setSpeed(0);
-  
-  //raise hand
-  do{
-    nh.spinOnce();
-    if(order_launch<0) goto RESET;
-
-    mot_pick.setSpeed(pw_raise);
-    enc = mot_pick.encorder();
-    delay(MAIN_DELAY);
-  }while(enc < target_deg_2*(ENC_PER_ROT/360.0));
 
   mot_pick.setSpeed(0);
 
