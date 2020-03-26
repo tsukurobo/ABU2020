@@ -35,9 +35,14 @@ const int PIN_SW_HOLD   = 2;
 const int PIN_SW_OPEN   = 5;
 const int PIN_SW_TOP    = 4;
 const int PIN_SW_BUTTOM = 9;
+const int PIN_VALV_1    = 6;
+const int PIN_VALV_2    = 10;
 //others
 const int MAIN_DELAY = 10; //[milli sec]
 const int TOUCH_OFF  = LOW;
+const int VALVE_OFF  = 0;
+const int VALVE_HOLD = 2;
+const int VALVE_OPEN = 1;
 
 ////global variable
 ///pamareter
@@ -54,6 +59,10 @@ int ENC_LIFT_MIDDLE;
 int ENC_LIFT_BUTTOM;
 int ENC_TEE_HOLD;
 int ENC_TEE_OPEN;
+//delay
+int DELAY_HOLD;
+int DELAY_SET;
+
 ///variable
 int pw_slide = 0;
 int pw_lift  = 0;
@@ -104,7 +113,9 @@ void setup(){
   pinMode(PIN_SW_OPEN,INPUT_PULLUP);
   pinMode(PIN_SW_TOP,INPUT_PULLUP);
   pinMode(PIN_SW_BUTTOM,INPUT_PULLUP);
-
+  pinMode(PIN_VALV_1,OUTPUT);
+  pinMode(PIN_VALV_2,OUTPUT);
+  
   //init actuator
   all_stop();
 }
@@ -118,49 +129,53 @@ void loop(){
       break;
       
     case TASK_STANDING_BY:
-      go_right();
-      go_top();
-      grasp_open();
+      go_right(); go_top(); grasp_open(); valve(VALVE_OPEN);
+      delay(1000);
       go_buttom();
-      grasp_hold_time(1500);
+      grasp_hold_time(DELAY_HOLD);
       go_top();
-      //tee_hold();
-     
+      valve(VALVE_HOLD);
+      delay(1000);
       finish_task();
       break;  
 
     case TASK_SETTING_1:
       go_buttom();
+      delay(DELAY_SET);
+      valve(VALVE_OPEN);
       delay(1000);
-      //tee_open();
       grasp_open();
       go_top();
       go_left();
-      grasp_hold_time(1500);
+      grasp_hold_time(DELAY_HOLD);
     
       finish_task();
       break;
 
     case TASK_SETTING_2:
-      //tee_hold();
+      valve(VALVE_HOLD);
+      delay(1000);
       go_right();
       go_buttom();
+      delay(DELAY_SET);
+      valve(VALVE_OPEN);
       delay(1000);
-      //tee_open();
       grasp_open();
       go_middle();
       go_left();
-      grasp_hold_time(1500);
+      grasp_hold_time(DELAY_HOLD);
       
       finish_task();
       break;
 
     case TASK_SETTING_3:
-      //tee_hold();
+      valve(VALVE_HOLD);
+      delay(1000);
       go_right();
       go_buttom();
+      delay(DELAY_SET);
+      valve(VALVE_OPEN);
       delay(1000);
-      //tee_open();
       grasp_open();
       go_top();
       go_left();
@@ -261,26 +276,6 @@ void grasp_hold_time(int delay_time){
   move_mot_grasp(0);
 }
 
-void tee_open(){
-  while(enc_tee < ENC_TEE_OPEN){
-    nh.spinOnce();
-    if(order_task < 0) break;
-    move_mot_tee(MOT_TEE_PW);
-    delay(MAIN_DELAY);
-  }
-  move_mot_tee(0);
-}
-
-void tee_hold(){
-  while(ENC_TEE_HOLD < enc_tee){
-    nh.spinOnce();
-    if(order_task < 0) break;
-    move_mot_tee(-MOT_TEE_PW);
-    delay(MAIN_DELAY);
-  }
-  move_mot_tee(0);
-}
-
 //void rtoo(){
 //  while(digitalRead(PIN_SW_RIGHT)==TOUCH_OFF || enc_lift<ENC_LIFT_TOP || digitalRead(PIN_SW_OPEN)==TOUCH_OFF || enc_tee<ENC_TEE_OPEN){
 //    nh.spinOnce();
@@ -366,13 +361,26 @@ void move_mot_grasp(int pw){
     }
 }
 
-void move_mot_tee(int pw){
-  if(pw_tee != pw){
-      pw_tee = pw;
-      mot_tee.setSpeed(pw_tee);
-      nh.spinOnce();
-    }
+void valve(int mode){
+  if(mode == 1){
+    digitalWrite(PIN_VALV_1,HIGH);
+    digitalWrite(PIN_VALV_2,LOW);
+  }else if(mode == 2){
+    digitalWrite(PIN_VALV_1,LOW);
+    digitalWrite(PIN_VALV_2,HIGH);
+  }else{
+    digitalWrite(PIN_VALV_1,LOW);
+    digitalWrite(PIN_VALV_2,LOW);
+  }
 }
+
+//void move_mot_tee(int pw){
+//  if(pw_tee != pw){
+//      pw_tee = pw;
+//      mot_tee.setSpeed(pw_tee);
+//      nh.spinOnce();
+//    }
+//}
 
 void all_stop(){
   if(!((pw_slide==0) && (pw_lift==0) && (pw_grasp==0) && (pw_tee==0))){
@@ -385,6 +393,8 @@ void all_stop(){
     mot_grasp.setSpeed(pw_grasp); nh.spinOnce();
     mot_tee.setSpeed(pw_tee);     nh.spinOnce();
   }
+  digitalWrite(PIN_VALV_1,LOW);
+  digitalWrite(PIN_VALV_2,LOW);
 }
 
 void finish_task(){
@@ -403,27 +413,14 @@ void callback(const std_msgs::Int32MultiArray& msg){
   MOT_LOWER_PW    = msg.data[3];
   MOT_GRASP_PW    = msg.data[4];
   MOT_TEE_PW      = msg.data[5];
-  ENC_LIFT_TOP    = msg.data[6];
-  ENC_LIFT_MIDDLE = msg.data[7];
-  ENC_LIFT_BUTTOM = msg.data[8];
-  ENC_TEE_HOLD    = msg.data[9];
-  ENC_TEE_OPEN    = msg.data[10];
+  ENC_LIFT_MIDDLE = msg.data[6];
+  ENC_TEE_HOLD    = msg.data[7];
+  ENC_TEE_OPEN    = msg.data[8];
+  DELAY_HOLD      = msg.data[9];
+  DELAY_SET       = msg.data[10];
 }
 
 void get_enc(const std_msgs::Int64MultiArray& msg){
   enc_lift = msg.data[0];
   enc_tee  = msg.data[1];
 }
-
-//void get_param(const std_msgs::Int32MultiArray& msg){
-//  MOT_SLIDE_PW    = msg.data[0];
-//  MOT_RAISE_PW    = msg.data[1];
-//  MOT_LOWER_PW    = msg.data[2];
-//  MOT_GRASP_PW    = msg.data[3];
-//  MOT_TEE_PW      = msg.data[4];
-//  ENC_LIFT_TOP    = msg.data[5];
-//  ENC_LIFT_MIDDLE = msg.data[6];
-//  ENC_LIFT_BUTTOM = msg.data[7];
-//  ENC_TEE_HOLD    = msg.data[8];
-//  ENC_TEE_OPEN    = msg.data[9];
-//}
