@@ -1,0 +1,12 @@
+pr_load: {
+        MOT_SLIDE_PW: -255,
+        MOT_RAISE_PW: -200,
+        MOT_LOWER_PW: 150,
+        MOT_GRASP_PW: 150,
+        MOT_TEE_PW: 200,
+        ENC_LIFT_MIDDLE: -12000,
+        ENC_TEE_HOLD: -300,
+        ENC_TEE_OPEN: -10000,
+        DELAY_HOLD: 1500,
+        DELAY_SET: 1000
+}

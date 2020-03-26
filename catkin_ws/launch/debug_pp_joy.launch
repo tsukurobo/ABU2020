@@ -1,28 +1,15 @@
 <launch>
+	<rosparam command="load" file="$(find pr_pick_pass)/pp_param.yaml"/>
 	<node pkg="joy" type="joy_node" name="joy_node">
 		<param name="dev" type="string" value="/dev/input/js0"/>
 	</node>
 
 	<node pkg="pr_kpp_test_joycon" type="pr_kpp_joycon_node" name="pr_kpp_joycon_node"> </node>
 
-	<node pkg="pr_kick" name="kick_node" type="kick_node">
-		<param name="FREQ"   value="100"/>
-		<param name="POW"    value="255"/>
-		<param name="DELAY"  value="10"/>
-	</node>
+	<node pkg="pr_pick_pass" name="pick_pass_node" type="pick_pass_node"/>
 
-	<node pkg="pr_pick_pass" name="pick_pass_node" type="pick_pass_node">
-		<param name="FREQ" value="100"/>
-		<param name="POW_LOWER" value="-70"/>
-		<param name="POW_RAISE" value="80"/>
-		<param name="POW_WIND" value="100"/>
-		<param name="DEG_1" value="-140"/>
-		<param name="DEG_2" value="-60"/>
-		<param name="DELAY_SOL" value="50"/>
-		<param name="DELAY_HAND" value="500"/>
-		<param name="DELAY_WIND" value="150"/>
-	</node>
 	<node pkg="rosserial_python" type="serial_node.py" name="serial_node0">
 		<param name="port" value="/dev/ttyACM0"/>
 	</node>
 </launch>
+

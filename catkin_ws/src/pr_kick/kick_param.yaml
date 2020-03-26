@@ -1,0 +1,5 @@
+pr_kick: {
+        FREQ: 100,
+        POW: 255,
+        DELAY: 10
+}
