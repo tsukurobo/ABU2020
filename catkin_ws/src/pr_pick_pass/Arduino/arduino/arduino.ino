@@ -189,6 +189,8 @@ void launching(){
   }while(target_deg_1*(ENC_PER_ROT/360.0) < enc);
     
   mot_pick.setSpeed(0);
+  
+  delay(500);////////////////////////////////////////wait
 
   //launch ball  
   while(digitalRead(TOUCH_PIN) == LOW){
@@ -247,7 +249,7 @@ void launching(){
     //pubD.publish(&debug);
     
     delay(MAIN_DELAY);
-  }while(enc < 0);
+  }while(enc < -1000);/////////////////////////////////
 
   mot_pick.setSpeed(0);
 

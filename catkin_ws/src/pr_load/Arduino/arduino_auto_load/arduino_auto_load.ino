@@ -27,7 +27,7 @@ const int EMERGENCY_STOP   = -1;
 const uint8_t ADDR_SLIDE = 0x20; //slide motor address of AVR
 const uint8_t ADDR_LIFT  = 0x21; //lift move motor address of AVR
 const uint8_t ADDR_GRASP = 0x22; //grasp motor address of AVR
-const uint8_t ADDR_TEE   = 0x23; //tee motor address of AVR
+//const uint8_t ADDR_TEE   = 0x23; //tee motor address of AVR
 //pin setting
 const int PIN_SW_RIGHT  = 11;
 const int PIN_SW_LEFT   = 8;
@@ -37,6 +37,11 @@ const int PIN_SW_TOP    = 4;
 const int PIN_SW_BUTTOM = 9;
 const int PIN_VALV_1    = 6;
 const int PIN_VALV_2    = 10;
+const int PIN_RACK_UP_1   = 57; //A3
+const int PIN_RACK_UP_2   = 61; //A7
+const int PIN_RACK_DOWN_1 = 64; //A11
+const int PIN_RACK_DOWN_2 = 67; //A14
+
 //others
 const int MAIN_DELAY = 10; //[milli sec]
 const int TOUCH_OFF  = LOW;
@@ -52,13 +57,9 @@ int MOT_SLIDE_PW;
 int MOT_RAISE_PW;
 int MOT_LOWER_PW;
 int MOT_GRASP_PW;
-int MOT_TEE_PW;
+//int MOT_TEE_PW;
 //encoder
-int ENC_LIFT_TOP;
 int ENC_LIFT_MIDDLE;
-int ENC_LIFT_BUTTOM;
-int ENC_TEE_HOLD;
-int ENC_TEE_OPEN;
 //delay
 int DELAY_HOLD;
 int DELAY_SET;
@@ -67,9 +68,8 @@ int DELAY_SET;
 int pw_slide = 0;
 int pw_lift  = 0;
 int pw_grasp = 0;
-int pw_tee   = 0;
+//int pw_tee   = 0;
 long enc_lift = 0;
-long enc_tee  = 0;
 
 //function prototype
 void callback(const std_msgs::Int32MultiArray& msg);
@@ -90,7 +90,7 @@ ros::Publisher pubD("debug_tpc",&debug);
 IseMotorDriver mot_slide(ADDR_SLIDE);
 IseMotorDriver mot_lift(ADDR_LIFT);
 IseMotorDriver mot_grasp(ADDR_GRASP);
-IseMotorDriver mot_tee(ADDR_TEE);
+//IseMotorDriver mot_tee(ADDR_TEE);
 
 void setup(){
   Wire.begin();
@@ -115,9 +115,14 @@ void setup(){
   pinMode(PIN_SW_BUTTOM,INPUT_PULLUP);
   pinMode(PIN_VALV_1,OUTPUT);
   pinMode(PIN_VALV_2,OUTPUT);
+  pinMode(PIN_RACK_UP_1,OUTPUT);
+  pinMode(PIN_RACK_UP_2,OUTPUT);
+  pinMode(PIN_RACK_DOWN_1,OUTPUT);
+  pinMode(PIN_RACK_DOWN_2,OUTPUT);
   
   //init actuator
   all_stop();
+
 }
 
 void loop(){
@@ -129,56 +134,52 @@ void loop(){
       break;
       
     case TASK_STANDING_BY:
-      go_right(); go_top(); grasp_open(); valve(VALVE_OPEN);
-      delay(1000);
+      go_right(); go_top(); grasp_open(); valve(VALVE_HOLD);
       go_buttom();
       grasp_hold_time(DELAY_HOLD);
       go_top();
-      valve(VALVE_HOLD);
-      delay(1000);
+      //valve(VALVE_HOLD);
+      
       finish_task();
       break;  
 
     case TASK_SETTING_1:
       go_buttom();
       delay(DELAY_SET);
-      valve(VALVE_OPEN);
-      delay(1000);
       grasp_open();
       go_top();
       go_left();
       grasp_hold_time(DELAY_HOLD);
-    
+      rack(1);
+      valve(VALVE_OPEN);
+      
       finish_task();
       break;
 
     case TASK_SETTING_2:
       valve(VALVE_HOLD);
-      delay(1000);
       go_right();
       go_buttom();
       delay(DELAY_SET);
-      valve(VALVE_OPEN);
-      delay(1000);
       grasp_open();
       go_middle();
       go_left();
       grasp_hold_time(DELAY_HOLD);
+      rack(2);
+      valve(VALVE_OPEN);
       
       finish_task();
       break;
 
     case TASK_SETTING_3:
       valve(VALVE_HOLD);
-      delay(1000);
       go_right();
       go_buttom();
       delay(DELAY_SET);
-      valve(VALVE_OPEN);
-      delay(1000);
       grasp_open();
       go_top();
       go_left();
+      valve(VALVE_OPEN);
       
       finish_task();
       break;
@@ -251,6 +252,21 @@ void grasp_open(){
   move_mot_grasp(0);
 }
 
+void grasp_open_time(int delay_time){
+  long tm;
+  long beg;
+  tm  = millis();
+  beg = millis();
+  while(tm-beg < delay_time){
+    nh.spinOnce();
+    if(order_task < 0) break;
+    move_mot_grasp(MOT_GRASP_PW);
+    delay(MAIN_DELAY);
+    tm = millis();
+  }
+  move_mot_grasp(0);
+}
+
 void grasp_hold(){
   while(digitalRead(PIN_SW_HOLD)==TOUCH_OFF){
     nh.spinOnce();
@@ -317,25 +333,6 @@ void grasp_hold_time(int delay_time){
 //  mot_grasp.setSpeed(0);
 //  mot_tee.setSpeed(0);
 //}
-//
-//void open_open(){
-//  while(digitalRead(PIN_SW_OPEN)==TOUCH_OFF || enc_tee<ENC_TEE_OPEN){
-//    nh.spinOnce();
-//    if(order_task < 0) break;
-//    
-//    //enc_tee  = mot_tee.encorder();
-//    
-//    digitalRead(PIN_SW_OPEN)==TOUCH_OFF  ? pw_grasp=-MOT_GRASP_PW : pw_grasp=0;
-//    enc_tee  < ENC_TEE_OPEN              ?   pw_tee=MOT_TEE_PW    :   pw_tee=0;   
-//    
-//    mot_grasp.setSpeed(pw_grasp);
-//    mot_tee.setSpeed(pw_tee); 
-//
-//    delay(MAIN_DELAY);
-//  }  
-//  mot_grasp.setSpeed(0);
-//  mot_tee.setSpeed(0);
-//}
 
 void move_mot_slide(int pw){
   if(pw_slide != pw){
@@ -363,38 +360,61 @@ void move_mot_grasp(int pw){
 
 void valve(int mode){
   if(mode == 1){
+    digitalWrite(PIN_VALV_1,LOW);
+    digitalWrite(PIN_VALV_2,LOW);
     digitalWrite(PIN_VALV_1,HIGH);
     digitalWrite(PIN_VALV_2,LOW);
+    delay(1000);
   }else if(mode == 2){
     digitalWrite(PIN_VALV_1,LOW);
+    digitalWrite(PIN_VALV_2,LOW);
+    digitalWrite(PIN_VALV_1,LOW);
     digitalWrite(PIN_VALV_2,HIGH);
+    delay(1000);
   }else{
     digitalWrite(PIN_VALV_1,LOW);
     digitalWrite(PIN_VALV_2,LOW);
   }
 }
 
-//void move_mot_tee(int pw){
-//  if(pw_tee != pw){
-//      pw_tee = pw;
-//      mot_tee.setSpeed(pw_tee);
-//      nh.spinOnce();
-//    }
-//}
+void rack(int mode){
+  if(mode == 1){
+    digitalWrite(PIN_RACK_UP_1,LOW);
+    digitalWrite(PIN_RACK_UP_2,LOW);
+    digitalWrite(PIN_RACK_UP_1,LOW);
+    digitalWrite(PIN_RACK_UP_2,HIGH);
+  }else if(mode == 2){
+    digitalWrite(PIN_RACK_DOWN_1,LOW);
+    digitalWrite(PIN_RACK_DOWN_2,LOW);
+    digitalWrite(PIN_RACK_DOWN_1,HIGH);
+    digitalWrite(PIN_RACK_DOWN_2,LOW);
+  }else{
+    digitalWrite(PIN_RACK_UP_1,LOW);
+    digitalWrite(PIN_RACK_UP_2,LOW);
+    digitalWrite(PIN_RACK_DOWN_1,LOW);
+    digitalWrite(PIN_RACK_DOWN_2,LOW);
+  }   
+}
 
 void all_stop(){
-  if(!((pw_slide==0) && (pw_lift==0) && (pw_grasp==0) && (pw_tee==0))){
+  if(!((pw_slide==0) && (pw_lift==0) && (pw_grasp==0))){
     pw_slide = 0;
     pw_lift  = 0;
     pw_grasp = 0;
-    pw_tee   = 0;
     mot_slide.setSpeed(pw_slide); nh.spinOnce();
     mot_lift.setSpeed(pw_lift);   nh.spinOnce();
     mot_grasp.setSpeed(pw_grasp); nh.spinOnce();
-    mot_tee.setSpeed(pw_tee);     nh.spinOnce();
   }
   digitalWrite(PIN_VALV_1,LOW);
   digitalWrite(PIN_VALV_2,LOW);
+//  digitalWrite(PIN_RACK_UP_1,LOW);
+//  digitalWrite(PIN_RACK_UP_2,LOW);
+//  digitalWrite(PIN_RACK_DOWN_1,LOW);
+//  digitalWrite(PIN_RACK_DOWN_2,LOW);
+    digitalWrite(PIN_RACK_UP_1,HIGH);
+  digitalWrite(PIN_RACK_UP_2,LOW);
+  digitalWrite(PIN_RACK_DOWN_1,LOW);
+  digitalWrite(PIN_RACK_DOWN_2,HIGH);
 }
 
 void finish_task(){
@@ -412,15 +432,12 @@ void callback(const std_msgs::Int32MultiArray& msg){
   MOT_RAISE_PW    = msg.data[2];
   MOT_LOWER_PW    = msg.data[3];
   MOT_GRASP_PW    = msg.data[4];
-  MOT_TEE_PW      = msg.data[5];
-  ENC_LIFT_MIDDLE = msg.data[6];
-  ENC_TEE_HOLD    = msg.data[7];
-  ENC_TEE_OPEN    = msg.data[8];
-  DELAY_HOLD      = msg.data[9];
-  DELAY_SET       = msg.data[10];
+  ENC_LIFT_MIDDLE = msg.data[5];
+  DELAY_HOLD      = msg.data[6];
+  DELAY_SET       = msg.data[7];
 }
 
 void get_enc(const std_msgs::Int64MultiArray& msg){
   enc_lift = msg.data[0];
-  enc_tee  = msg.data[1];
+  //enc_tee  = msg.data[1];
 }

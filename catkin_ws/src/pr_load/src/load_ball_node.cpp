@@ -17,8 +17,6 @@ int MOT_LOWER_PW;
 int MOT_GRASP_PW;
 int MOT_TEE_PW;
 int ENC_LIFT_MIDDLE;
-int ENC_TEE_HOLD;
-int ENC_TEE_OPEN;
 int DELAY_HOLD;
 int DELAY_SET;
 
@@ -45,10 +43,7 @@ int main(int argc, char **argv){
 	nh.getParam("load_ball_node/MOT_RAISE_PW",MOT_RAISE_PW);
 	nh.getParam("load_ball_node/MOT_LOWER_PW",MOT_LOWER_PW);
 	nh.getParam("load_ball_node/MOT_GRASP_PW",MOT_GRASP_PW);
-	nh.getParam("load_ball_node/MOT_TEE_PW",MOT_TEE_PW);
 	nh.getParam("load_ball_node/ENC_LIFT_MIDDLE",ENC_LIFT_MIDDLE);
-	nh.getParam("load_ball_node/ENC_TEE_HOLD",ENC_TEE_HOLD);
-	nh.getParam("load_ball_node/ENC_TEE_OPEN",ENC_TEE_OPEN);
 	nh.getParam("load_ball_node/DELAY_HOLD",DELAY_HOLD);
 	nh.getParam("load_ball_node/DELAY_SET",DELAY_SET);
 
@@ -78,19 +73,16 @@ int main(int argc, char **argv){
 
 void cb_begin_task(const std_msgs::Int32& beg_order){
 	std_msgs::Int32MultiArray data;
-	data.data.resize(11);
+	data.data.resize(8);
 
 	data.data[0] = beg_order.data;
 	data.data[1] = MOT_SLIDE_PW;
 	data.data[2] = MOT_RAISE_PW;
 	data.data[3] = MOT_LOWER_PW;
 	data.data[4] = MOT_GRASP_PW;
-	data.data[5] = MOT_TEE_PW;
-	data.data[6] = ENC_LIFT_MIDDLE;
-	data.data[7] = ENC_TEE_HOLD;
-	data.data[8] = ENC_TEE_OPEN;
-	data.data[9] = DELAY_HOLD;
-	data.data[10] = DELAY_SET;
+	data.data[5] = ENC_LIFT_MIDDLE;
+	data.data[6] = DELAY_HOLD;
+	data.data[7] = DELAY_SET;
 	
 
 	pub_beg.publish(data);

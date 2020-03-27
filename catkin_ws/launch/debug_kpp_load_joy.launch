@@ -23,17 +23,13 @@
 		<param name="DELAY_WIND" value="150"/>
 	</node>
 	<node pkg="pr_load" name="load_ball_node" type="load_ball_node">
-		<param name="MOT_SLIDE_PW"    value="-255"/>
-		<param name="MOT_RAISE_PW"    value="-200"/>
-		<param name="MOT_LOWER_PW"    value="150"/>
+		<param name="MOT_SLIDE_PW"    value="-155"/>
+		<param name="MOT_RAISE_PW"    value="-100"/>
+		<param name="MOT_LOWER_PW"    value="100"/>
 		<param name="MOT_GRASP_PW"    value="150"/>
-		<param name="MOT_TEE_PW"      value="200"/>
-		<param name="ENC_LIFT_MIDDLE" value="-12000"/>
-		<param name="ENC_TEE_HOLD"    value="-300"/>
-		<param name="ENC_TEE_OPEN"    value="-10000"/>
-		<param name="DELAY_HOLD"      value="1500"/>
+		<param name="ENC_LIFT_MIDDLE" value="-11195"/>
+		<param name="DELAY_HOLD"      value="400"/>
 		<param name="DELAY_SET"       value="1000"/>
-
 	</node>
 
 	<node pkg="rosserial_python" type="serial_node.py" name="serial_node0">

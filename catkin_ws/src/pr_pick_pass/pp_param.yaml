@@ -1,0 +1,11 @@
+pr_pick_pass: {
+       FREQ: 100,
+       POW_LOWER: 70,
+       POW_RAISE: 80,
+       POW_WIND: 100,
+       DEG_1: -140,
+       DEG_2: -60,
+       DELAY_SOL: 50,
+       DELAY_HAND: 500,
+       DELAY_WIND: 150
+}
