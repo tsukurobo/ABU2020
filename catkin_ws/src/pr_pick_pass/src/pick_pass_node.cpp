@@ -147,6 +147,7 @@ void task_launch(){
 	if(step_launch == 1){
 		//open hand
 		data_order.data[3] = VALVE_MODE_OPEN;
+		step_launch = 2;
 	}else if(step_launch == 2){
 		//wait for hold time
 		static int cnt = 0;
