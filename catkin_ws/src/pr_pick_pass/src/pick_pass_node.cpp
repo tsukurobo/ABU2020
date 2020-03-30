@@ -85,9 +85,10 @@ int main(int argc, char **argv){
 		if(order_launch > 0) task_launch();
 		if(order_reverse > 0) task_reverse();
 
-		pub_order.publish(data_order);
-
 		if(order_pick<0 || order_launch<0 || order_reverse<0) all_stop();
+
+		pub_order.publish(data_order);
+		
 		loop_rate.sleep();
 	}
 
@@ -244,7 +245,7 @@ void task_reverse(){
 			step_reverse = 2;
 		}
 	}else if(step_reverse == 2){
-		order_pick = 0;
+		order_reverse = 0;
 		step_reverse = 1;
 		data_fin.reverse = 0;
 		pub_fin.publish(data_fin);
