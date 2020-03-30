@@ -209,7 +209,7 @@ void task_launch(){
 		//wind reverse rope
 		data_order.data[1] = -POW_WIND;
 		//next
-		if(enc_pass < 0){
+		if(enc_pass > 0){
 			data_order.data[1] = 0;
 			step_launch = 8;
 		}
