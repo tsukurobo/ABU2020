@@ -20,9 +20,13 @@ void get_joy(const sensor_msgs::Joy& joy){
 	data_kick.wind   = joy.buttons[5];
 	data_kick.launch = joy.buttons[4];
 
-	data_pp.pick    = joy.buttons[1];
-	data_pp.launch  = joy.buttons[0];
-	data_pp.reverse = joy.buttons[3];
+	//data_pp.pick    = joy.buttons[1];
+	//data_pp.launch  = joy.buttons[0];
+	//data_pp.reverse = joy.buttons[3];
+
+	if(joy.buttons[1]==1) data_pp.pick = 1;
+	if(joy.buttons[0]==1) data_pp.launch = 1;
+	if(joy.buttons[3]==1) data_pp.reverse = 1;
 
 	if(joy.buttons[16]==1) data_load.data = 1;
 	if(joy.buttons[14]==1) data_load.data = 2;
