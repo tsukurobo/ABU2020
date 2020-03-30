@@ -145,23 +145,35 @@ void task_pick(){
 
 void task_launch(){
 	if(step_launch == 1){
-		//lower hand
-		data_order.data[0] = POW_LOWER;
-		//next
-		if(DEG_1*ENC_PER_ROT/360.0 > enc_pick){
-			data_order.data[0] = 0;
-			step_launch = 2;
-		}
+		//open hand
+		data_order.data[3] = VALVE_MODE_OPEN;
 	}else if(step_launch == 2){
 		//wait for hold time
 		static int cnt = 0;
 		cnt++;
 		//next
-		if(cnt > 500*FREQ/1000.0){
+		if(cnt > DELAY_HAND*FREQ/1000.0){
 			step_launch = 3;
 			cnt = 0;
 		}
 	}else if(step_launch == 3){
+		//lower hand
+		data_order.data[0] = POW_LOWER;
+		//next
+		if(DEG_1*ENC_PER_ROT/360.0 > enc_pick){
+			data_order.data[0] = 0;
+			step_launch = 4;
+		}
+	}else if(step_launch == 4){
+		//wait for hold time
+		static int cnt = 0;
+		cnt++;
+		//next
+		if(cnt > 500*FREQ/1000.0){
+			step_launch = 5;
+			cnt = 0;
+		}
+	}else if(step_launch == 5){
 		//launch solenoid
 		static int cnt = 0;
 		
@@ -176,44 +188,44 @@ void task_launch(){
 		//next
 		if(touch_val == SOLENOID_LOCK_OFF){
 			data_order.data[2] = SOLENOID_MODE_OFF;
-			step_launch = 4;
-			cnt = 0;
-		}
-	}else if(step_launch == 4){
-		//wait for hold time
-		static int cnt = 0;
-		cnt++;
-		//next
-		if(cnt > 1000.0*FREQ/1000.0){
-			step_launch = 5;
-			cnt = 0;
-		}
-	}else if(step_launch == 5){
-		//wind rope
-		data_order.data[1] = POW_WIND;
-		//next
-		if(touch_val == SOLENOID_LOCK_ON){
-			data_order.data[1] = 0;
 			step_launch = 6;
+			cnt = 0;
 		}
 	}else if(step_launch == 6){
 		//wait for hold time
 		static int cnt = 0;
 		cnt++;
 		//next
-		if(cnt > DELAY_WIND*FREQ/1000.0){
+		if(cnt > 1000.0*FREQ/1000.0){
 			step_launch = 7;
 			cnt = 0;
 		}
 	}else if(step_launch == 7){
+		//wind rope
+		data_order.data[1] = POW_WIND;
+		//next
+		if(touch_val == SOLENOID_LOCK_ON){
+			data_order.data[1] = 0;
+			step_launch = 8;
+		}
+	}else if(step_launch == 8){
+		//wait for hold time
+		static int cnt = 0;
+		cnt++;
+		//next
+		if(cnt > DELAY_WIND*FREQ/1000.0){
+			step_launch = 9;
+			cnt = 0;
+		}
+	}else if(step_launch == 9){
 		//wind reverse rope
 		data_order.data[1] = -POW_WIND;
 		//next
 		if(enc_pass > 0){
 			data_order.data[1] = 0;
-			step_launch = 8;
+			step_launch = 10;
 		}
-	}else if(step_launch == 8){
+	}else if(step_launch == 10){
 		order_launch = 0;
 		step_launch = 1;
 		data_fin.launch = 0;
