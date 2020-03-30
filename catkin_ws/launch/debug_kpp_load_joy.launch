@@ -7,7 +7,7 @@
 
 	<node pkg="pr_kick" name="kick_node" type="kick_node">
 		<param name="FREQ"   value="100"/>
-		<param name="POW"    value="255"/>
+		<param name="POW"    value="190"/>
 		<param name="DELAY"  value="10"/>
 	</node>
 
@@ -15,8 +15,8 @@
 		<param name="FREQ" value="100"/>
 		<param name="POW_LOWER" value="-70"/>
 		<param name="POW_RAISE" value="80"/>
-		<param name="POW_WIND" value="100"/>
-		<param name="DEG_1" value="-140"/>
+		<param name="POW_WIND" value="190"/>
+		<param name="DEG_1" value="-120"/>
 		<param name="DEG_2" value="-60"/>
 		<param name="DELAY_SOL" value="50"/>
 		<param name="DELAY_HAND" value="500"/>
@@ -27,22 +27,22 @@
 		<param name="MOT_RAISE_PW"    value="-100"/>
 		<param name="MOT_LOWER_PW"    value="100"/>
 		<param name="MOT_GRASP_PW"    value="150"/>
-		<param name="ENC_LIFT_MIDDLE" value="-11195"/>
+		<param name="ENC_LIFT_MIDDLE" value="-11381"/>
 		<param name="DELAY_HOLD"      value="400"/>
 		<param name="DELAY_SET"       value="1000"/>
 	</node>
 
 	<node pkg="rosserial_python" type="serial_node.py" name="serial_node0">
-		<param name="port" value="/dev/ttyACM0"/>
-	</node>
-	<node pkg="rosserial_python" type="serial_node.py" name="serial_node1">
-		<param name="port" value="/dev/ttyACM1"/>
-	</node>
-	<node pkg="rosserial_python" type="serial_node.py" name="serial_node2">
 		<param name="port" value="/dev/ttyACM2"/>
 	</node>
-	<node pkg="rosserial_python" type="serial_node.py" name="serial_node3">
+	<node pkg="rosserial_python" type="serial_node.py" name="serial_node1">
 		<param name="port" value="/dev/ttyACM3"/>
+	</node>
+	<node pkg="rosserial_python" type="serial_node.py" name="serial_node2">
+		<param name="port" value="/dev/ttyACM4"/>
+	</node>
+	<node pkg="rosserial_python" type="serial_node.py" name="serial_node3">
+		<param name="port" value="/dev/ttyACM5"/>
 	</node>
 </launch>
 

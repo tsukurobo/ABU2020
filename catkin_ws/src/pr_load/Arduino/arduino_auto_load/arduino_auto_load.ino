@@ -383,11 +383,13 @@ void rack(int mode){
     digitalWrite(PIN_RACK_UP_2,LOW);
     digitalWrite(PIN_RACK_UP_1,LOW);
     digitalWrite(PIN_RACK_UP_2,HIGH);
+    delay(1000);
   }else if(mode == 2){
     digitalWrite(PIN_RACK_DOWN_1,LOW);
     digitalWrite(PIN_RACK_DOWN_2,LOW);
     digitalWrite(PIN_RACK_DOWN_1,HIGH);
     digitalWrite(PIN_RACK_DOWN_2,LOW);
+    delay(1000);
   }else{
     digitalWrite(PIN_RACK_UP_1,LOW);
     digitalWrite(PIN_RACK_UP_2,LOW);

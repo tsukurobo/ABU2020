@@ -7,7 +7,7 @@
 
 	<node pkg="pr_kick" name="kick_node" type="kick_node">
 		<param name="FREQ"   value="100"/>
-		<param name="POW"    value="255"/>
+		<param name="POW"    value="190"/>
 		<param name="DELAY"  value="10"/>
 	</node>
 
@@ -16,7 +16,7 @@
 		<param name="MOT_RAISE_PW"    value="-100"/>
 		<param name="MOT_LOWER_PW"    value="100"/>
 		<param name="MOT_GRASP_PW"    value="150"/>
-		<param name="ENC_LIFT_MIDDLE" value="-11195"/>
+		<param name="ENC_LIFT_MIDDLE" value="-11381"/>
 		<param name="DELAY_HOLD"      value="400"/>
 		<param name="DELAY_SET"       value="1000"/>
 	</node>
