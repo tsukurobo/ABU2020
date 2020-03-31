@@ -6,6 +6,7 @@
 #include <sstream>
 
 ros::Subscriber sub_joy;
+ros::Subscriber sub_pp;
 ros::Publisher  pub_kick;
 ros::Publisher  pub_pp;
 ros::Publisher  pub_load;
@@ -15,14 +16,17 @@ pr_msg::PpMsg   data_pp;
 std_msgs::Int32 data_load;
 
 int old;
+int old_pick;
+int old_launch;
+int old_reverse;
 
 void get_joy(const sensor_msgs::Joy& joy){
 	data_kick.wind   = joy.buttons[5];
 	data_kick.launch = joy.buttons[4];
 
-	//data_pp.pick    = joy.buttons[1];
-	//data_pp.launch  = joy.buttons[0];
-	//data_pp.reverse = joy.buttons[3];
+	//if(!(joy.buttons[1]==0 && data_pp.pick==1))    data_pp.pick    = joy.buttons[1];
+	//if(!(joy.buttons[0]==0 && data_pp.launch==1))  data_pp.launch  = joy.buttons[0];
+	//if(!(joy.buttons[3]==0 && data_pp.reverse==1)) data_pp.reverse = joy.buttons[3];
 
 	if(joy.buttons[1]==1) data_pp.pick = 1;
 	if(joy.buttons[0]==1) data_pp.launch = 1;
@@ -48,6 +52,19 @@ void get_joy(const sensor_msgs::Joy& joy){
 	if(!(data_load.data==0 || old==data_load.data)) pub_load.publish(data_load);
 
 	old = data_load.data;
+	old_pick = data_pp.pick;
+	old_launch = data_pp.launch;
+	old_reverse = data_pp.reverse;
+}
+
+void get_pp_tpc(const pr_msg::PpMsg& pp){
+	if(old_pick==1 && pp.pick==0) data_pp.pick = 0;
+	if(old_launch==1 && pp.launch==0) data_pp.launch = 0;
+	if(old_reverse==1 && pp.reverse==0) data_pp.reverse = 0;
+
+	old_pick = data_pp.pick;
+	old_launch = data_pp.launch;
+	old_reverse = data_pp.reverse;
 }
 
 int main(int argc, char** argv){
@@ -55,6 +72,7 @@ int main(int argc, char** argv){
 	ros::NodeHandle nh;
 	
 	sub_joy = nh.subscribe("joy", 1, get_joy);	
+	sub_pp  = nh.subscribe("pp_tpc", 1, get_pp_tpc);	
 	pub_kick = nh.advertise<pr_msg::KickMsg>("kick_tpc",1);
 	pub_pp   = nh.advertise<pr_msg::PpMsg>("pp_tpc",1);
 	pub_load = nh.advertise<std_msgs::Int32>("load_tpc",1);

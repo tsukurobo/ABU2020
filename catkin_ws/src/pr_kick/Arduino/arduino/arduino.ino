@@ -104,7 +104,7 @@ void winding(){
     motor.setSpeed(-pw);
     enc = motor.encorder();
     delay(MAIN_DELAY);
-  }while(enc<0);
+  }while(enc<-2000);
 
   //finish
   data.data[0] = 0;

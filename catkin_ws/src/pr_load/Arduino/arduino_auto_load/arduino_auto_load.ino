@@ -138,7 +138,7 @@ void loop(){
       go_buttom();
       grasp_hold_time(DELAY_HOLD);
       go_top();
-      //valve(VALVE_HOLD);
+      valve(VALVE_HOLD);
       
       finish_task();
       break;  
@@ -177,7 +177,7 @@ void loop(){
       go_buttom();
       delay(DELAY_SET);
       grasp_open();
-      go_top();
+      go_middle();
       go_left();
       valve(VALVE_OPEN);
       
@@ -206,7 +206,7 @@ void go_left(){
   while(digitalRead(PIN_SW_LEFT)==TOUCH_OFF){
     nh.spinOnce();
     if(order_task < 0) break;
-    move_mot_slide(MOT_SLIDE_PW);
+    move_mot_slide(-250);//////////////////////////////////////////
     delay(MAIN_DELAY);
   }
   move_mot_slide(0);
@@ -359,18 +359,18 @@ void move_mot_grasp(int pw){
 }
 
 void valve(int mode){
-  if(mode == 1){
+  if(mode == VALVE_OPEN){
     digitalWrite(PIN_VALV_1,LOW);
     digitalWrite(PIN_VALV_2,LOW);
     digitalWrite(PIN_VALV_1,HIGH);
     digitalWrite(PIN_VALV_2,LOW);
-    delay(1000);
-  }else if(mode == 2){
+    delay(500);
+  }else if(mode == VALVE_HOLD){
     digitalWrite(PIN_VALV_1,LOW);
     digitalWrite(PIN_VALV_2,LOW);
     digitalWrite(PIN_VALV_1,LOW);
     digitalWrite(PIN_VALV_2,HIGH);
-    delay(1000);
+    delay(500);
   }else{
     digitalWrite(PIN_VALV_1,LOW);
     digitalWrite(PIN_VALV_2,LOW);
@@ -383,13 +383,13 @@ void rack(int mode){
     digitalWrite(PIN_RACK_UP_2,LOW);
     digitalWrite(PIN_RACK_UP_1,LOW);
     digitalWrite(PIN_RACK_UP_2,HIGH);
-    delay(1000);
+    delay(500);
   }else if(mode == 2){
     digitalWrite(PIN_RACK_DOWN_1,LOW);
     digitalWrite(PIN_RACK_DOWN_2,LOW);
     digitalWrite(PIN_RACK_DOWN_1,HIGH);
     digitalWrite(PIN_RACK_DOWN_2,LOW);
-    delay(1000);
+    delay(500);
   }else{
     digitalWrite(PIN_RACK_UP_1,LOW);
     digitalWrite(PIN_RACK_UP_2,LOW);
@@ -407,13 +407,16 @@ void all_stop(){
     mot_lift.setSpeed(pw_lift);   nh.spinOnce();
     mot_grasp.setSpeed(pw_grasp); nh.spinOnce();
   }
+  //valve hold
   digitalWrite(PIN_VALV_1,LOW);
   digitalWrite(PIN_VALV_2,LOW);
+//  digitalWrite(PIN_VALV_1,LOW);
+//  digitalWrite(PIN_VALV_2,HIGH);
 //  digitalWrite(PIN_RACK_UP_1,LOW);
 //  digitalWrite(PIN_RACK_UP_2,LOW);
 //  digitalWrite(PIN_RACK_DOWN_1,LOW);
 //  digitalWrite(PIN_RACK_DOWN_2,LOW);
-    digitalWrite(PIN_RACK_UP_1,HIGH);
+  digitalWrite(PIN_RACK_UP_1,HIGH);
   digitalWrite(PIN_RACK_UP_2,LOW);
   digitalWrite(PIN_RACK_DOWN_1,LOW);
   digitalWrite(PIN_RACK_DOWN_2,HIGH);
