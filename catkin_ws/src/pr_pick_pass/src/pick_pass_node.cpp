@@ -83,7 +83,7 @@ int main(int argc, char **argv){
 
 		if(order_pick > 0) task_pick();
 		if(order_launch > 0) task_launch();
-		if(order_reverse > 0) task_reverse();
+		//if(order_reverse > 0) task_reverse();
 
 		pub_order.publish(data_order);
 
@@ -202,9 +202,17 @@ void task_launch(){
 		//next
 		if(DEG_2*ENC_PER_ROT/360.0 < enc_pick){
 			data_order.data[0] = 0;
-			step_reverse = 7;
+			step_launch = 7;
 		}
 	}else if(step_launch == 7){
+		//wind reverse rope
+		data_order.data[1] = -POW_WIND;
+		//next
+		if(enc_pass > 0){
+			data_order.data[1] = 0;
+			step_launch = 8;
+		}
+	}else if(step_launch == 8){
 		order_launch = 0;
 		step_launch = 1;
 		data_fin.launch = 0;
@@ -214,11 +222,11 @@ void task_launch(){
 
 void task_reverse(){
 	if(step_reverse == 1){
-		//wind reverse rope
-		data_order.data[1] = -POW_WIND;
+		//raise hand
+		data_order.data[0] = POW_RAISE;
 		//next
-		if(enc_pass > 0){
-			data_order.data[1] = 0;
+		if(DEG_2*ENC_PER_ROT/360.0 < enc_pick){
+			data_order.data[0] = 0;
 			step_reverse = 2;
 		}
 	}else if(step_reverse == 2){
