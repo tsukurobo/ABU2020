@@ -145,6 +145,8 @@ void task_pick(){
 
 void task_launch(){
 	if(step_launch == 1){
+		//open hand
+		data_order.data[3] = VALVE_MODE_OPEN;
 		//lower hand
 		data_order.data[0] = POW_LOWER;
 		//next
