@@ -14,7 +14,7 @@ goal_pub = rospy.Publisher('goal', Vector3, queue_size = 10)
 
 def on_receive_joy(joy):
     linear = Vector3(-joy.axes[0], joy.axes[1], 0)
-    angular = Vector3(0, 0, joy.axes[3])
+    angular = Vector3(0, 0, joy.axes[2])
     twist = Twist(linear, angular)
     twist_pub.publish(twist)
 

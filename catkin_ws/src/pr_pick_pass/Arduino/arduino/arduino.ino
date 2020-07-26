@@ -8,12 +8,12 @@
 //#include <std_msgs/Int64.h>
 
 //constant
-const uint8_t ADDR_PICK = 0x13; //pick up motor address of AVR
+const uint8_t ADDR_PICK = 0x20; //pick up motor address of AVR
 const uint8_t ADDR_PASS = 0x14; //pass motor address of AVR
 const int TOUCH_PIN    = 2;  //touch sensor pin
 const int SOLENOID_PIN = 6;  //solenoid pin
 const int VALVE_PIN_1  = 10; //valve pin
-const int VALVE_PIN_2  = 12; //valve pin
+const int VALVE_PIN_2  = 8; //valve pin
 const int ENC_PER_ROT = 4048; //[enc_step/360deg]
 const int MAIN_DELAY  = 10;   //[millisec]
 
@@ -203,8 +203,8 @@ void launching(){
   }
 
   //complete launch
-  data.data[1] = 2;
-  pub.publish(&data);
+  //data.data[1] = 2;
+  //pub.publish(&data);
 
   //wait for launching time
   delay(1000);
@@ -217,8 +217,6 @@ void launching(){
     mot_pass.setSpeed(pw_wind);
 
     enc = mot_pass.encorder();
-    //debug.data = enc;
-    //pubD.publish(&debug);
   
     delay(MAIN_DELAY);
   }while(digitalRead(TOUCH_PIN) == HIGH);
@@ -226,17 +224,29 @@ void launching(){
   delay(delay_wind);
 
   mot_pass.setSpeed(0);
-  
+
+  data.data[0] = 121;
+  pub.publish(&data);
+    
   //raise hand
   do{
     nh.spinOnce();
     if(order_launch<0) goto RESET;
 
-    mot_pick.setSpeed(pw_raise);
     enc = mot_pick.encorder();
+    mot_pick.setSpeed(pw_raise);
+
+    data.data[0] = enc;
+    pub.publish(&data);
+    
     delay(MAIN_DELAY);
   }while(enc < target_deg_2*(ENC_PER_ROT/360.0));
 
+  mot_pick.setSpeed(0);
+  
+  data.data[0] = 242;
+  pub.publish(&data);
+  
   //wind reverse
   do{
     nh.spinOnce();
@@ -245,8 +255,8 @@ void launching(){
     mot_pass.setSpeed(-pw_wind);
     enc = mot_pass.encorder();
     
-    //debug.data = enc;
-    //pubD.publish(&debug);
+    data.data[0] = enc;
+    pub.publish(&data);
     
     delay(MAIN_DELAY);
   }while(enc < -1000);/////////////////////////////////

@@ -10,7 +10,7 @@
 //#include <std_msgs/Float64.h>
 
 //constant
-const uint8_t ADDR = 0x12;  //address of AVR on ise-motor-driver
+const uint8_t ADDR = 0x21;  //address of AVR on ise-motor-driver
 const int TOUCH_PIN = 6;    //pin
 const int SOLENOID_PIN = 7; //pin
 const int MAIN_DELAY = 10;   //[millisec]
