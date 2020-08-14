@@ -87,8 +87,8 @@ void loop(){
 
   //get sensor
   touch_val = digitalRead(TOUCH_PIN);
-  if(order_enc_pick == ORDER_ENC_GET) enc_pick  = mot_pick.encorder();
-  if(order_enc_pass == ORDER_ENC_GET) enc_pass  = mot_pass.encorder();
+  if(order_enc_pick == ORDER_ENC_GET) enc_pick = mot_pick.encorder();
+  if(order_enc_pass == ORDER_ENC_GET) enc_pass = mot_pass.encorder();
   
   //actuator
   if(m_pw_pick  != m_pw_pick_old)  mot_pick.setSpeed(m_pw_pick);
@@ -113,7 +113,7 @@ void loop(){
   valve_mode_old = valve_mode;
   touch_val_old  = touch_val;
   enc_pick_old   = enc_pick;
-  enc_pass_old   = enc_pass_old;  
+  enc_pass_old   = enc_pass;  
   
   delay(MAIN_DELAY); 
 }

@@ -25,15 +25,15 @@ const int ORDER_ENC_NO_GET = 0;
 
 //sub joy
 //task order
-int order_pick;
-int order_launch;
-int order_reverse;
-int emg_stop;
+int order_pick   = 0;
+int order_launch = 0;
+int emg_stop     = 0;
 //debug order
-int debug_mode;
+int debug_mode = 0;
 int debug_joy_LR;
 int debug_joy_UD;
 float debug_joy_stick;
+int debug_enc = 0;
 
 //pub arduino
 //actuator
@@ -56,11 +56,12 @@ int step_launch  = 0;
 int step_reverse = 0;
 
 //parameter
-int POW_LOWER = 22; //手を下ろすモータパワー (-255~255)
+int POW_LOWER; //手を下ろすモータパワー (-255~255)
 int POW_RAISE; //手を上げるモータパワー (-255~255)
 int POW_WIND;  //ロープ巻き上げモータパワー (-255~255)
 int DEG_1; //ピックアップ時に動かす角度[deg]
 int DEG_2; //ピックアップ時に戻す角度[deg]
+int DEG_3; //ロープの緩めを何度で止めるか[deg]
 int DELAY_SOL;  //ソレノイドonの時間[milli sec]
 int DELAY_HAND; //ピックアップ時つかむ前後の待ち時間[milli sec]
 int DELAY_WIND; //巻取り時，タッチセンサが反応してから逆回転するまでの待ち時間[milli sec]
@@ -70,7 +71,6 @@ void get_joy(const sensor_msgs::Joy& msg_joy);
 void get_sensor(const std_msgs::Int32MultiArray& msg_sensor);
 void task_pick();
 void task_launch();
-void task_reverse();
 void debug_func();
 void all_stop();
 void publish_order();
@@ -90,6 +90,7 @@ int main(int argc, char **argv){
 	nh.getParam("new_pick_pass_node/POW_WIND",POW_WIND);
 	nh.getParam("new_pick_pass_node/DEG_1",DEG_1);
 	nh.getParam("new_pick_pass_node/DEG_2",DEG_2);
+	nh.getParam("new_pick_pass_node/DEG_3",DEG_3);
 	nh.getParam("new_pick_pass_node/DELAY_SOL",DELAY_SOL);
 	nh.getParam("new_pick_pass_node/DELAY_HAND",DELAY_HAND);
 	nh.getParam("new_pick_pass_node/DELAY_WIND",DELAY_WIND);
@@ -197,7 +198,7 @@ void task_launch(){
 			cnt = 0;
 			step_launch = 4;
 		}
-	}else if(step_launch == 4){ //wait for launch time (200msec)
+	}else if(step_launch == 4){ //wait for launch time (800msec)
 		static int cnt = 0;
 		cnt++;
 
@@ -223,17 +224,18 @@ void task_launch(){
 	}else if(step_launch == 7){ //raise hand
 		m_pw_pick = POW_RAISE;
 		order_enc_pick = ORDER_ENC_GET;
+		order_enc_pass = ORDER_ENC_GET; //早めにゲットしないと間に合わない
 
 		if(DEG_2*ENC_PER_ROT/360.0 < enc_pick){ //stop hand
 			m_pw_pick = 0;
 			order_enc_pick = ORDER_ENC_NO_GET;
+			order_enc_pass = ORDER_ENC_GET;
 			step_launch = 8;
 		}
 	}else if(step_launch == 8){ //reverse rope
 		m_pw_pass = -POW_WIND;
-		order_enc_pass = ORDER_ENC_GET;
 
-		if(-1000 < enc_pick){ //stop reverse
+		if(DEG_3*ENC_PER_ROT/360.0 < enc_pass){ //stop reverse
 			m_pw_pass = 0;
 			order_enc_pass = ORDER_ENC_NO_GET;
 			step_launch = 0;
@@ -244,9 +246,6 @@ void task_launch(){
 }
 
 void debug_func(){
-	order_enc_pick = ORDER_ENC_NO_GET;
-	order_enc_pass = ORDER_ENC_NO_GET;
-
 	//motor
 	if(debug_joy_LR == -1) m_pw_pick = debug_joy_stick*DEBUG_M_PW;
 	if(debug_joy_UD ==  1) m_pw_pass = debug_joy_stick*DEBUG_M_PW;
@@ -262,6 +261,15 @@ void debug_func(){
 	}else{
 		valve_mode = 0;
 	}
+
+	//encoder
+	if(debug_enc == 1){
+		order_enc_pick = ORDER_ENC_GET;
+		order_enc_pass = ORDER_ENC_GET;
+	}else{
+		order_enc_pick = ORDER_ENC_NO_GET;
+		order_enc_pass = ORDER_ENC_NO_GET;
+	}
 }
 
 void all_stop(){
@@ -275,8 +283,6 @@ void all_stop(){
 
 	step_pick   = 0;
 	step_launch = 0;
-
-	ROS_FATAL("log:%d", step_launch);
 }
 
 void publish_order(){
@@ -297,6 +303,7 @@ void get_joy(const sensor_msgs::Joy& msg_joy){
 	debug_joy_LR    = msg_joy.axes[4];
     debug_joy_UD    = msg_joy.axes[5];
 	debug_joy_stick = msg_joy.axes[3];
+	debug_enc = msg_joy.buttons[3];
 }
 
 void get_sensor(const std_msgs::Int32MultiArray& msg_sensor){

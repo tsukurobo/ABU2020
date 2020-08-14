@@ -212,8 +212,7 @@ void launching(){
   //wind rope
   do{
     nh.spinOnce();
-    if(order_launch<0) goto RESET;
-
+    if(order_launch<0) goto RESET; *ENC_PER_ROT/360
     mot_pass.setSpeed(pw_wind);
 
     enc = mot_pass.encorder();
@@ -259,7 +258,7 @@ void launching(){
     pub.publish(&data);
     
     delay(MAIN_DELAY);
-  }while(enc < -1000);/////////////////////////////////
+  }while(enc < -1000);/////////////////
 
   mot_pick.setSpeed(0);
 
