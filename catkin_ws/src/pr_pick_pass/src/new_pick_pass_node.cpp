@@ -62,8 +62,10 @@ int POW_WIND;  //ロープ巻き上げモータパワー (-255~255)
 int DEG_1; //ピックアップ時に動かす角度[deg]
 int DEG_2; //ピックアップ時に戻す角度[deg]
 int DEG_3; //ロープの緩めを何度で止めるか[deg]
-int DELAY_SOL;  //ソレノイドonの時間[milli sec]
+int DELAY_SOL_1;  //ソレノイドonの時間[milli sec]
+int DELAY_SOL_2;  //ソレノイドoffの時間[milli sec]
 int DELAY_HAND; //ピックアップ時つかむ前後の待ち時間[milli sec]
+int DELAY_LAUNCH; //発射後の待ち時間[milli sec]
 int DELAY_WIND; //巻取り時，タッチセンサが反応してから逆回転するまでの待ち時間[milli sec]
  
 //function protype
@@ -91,8 +93,10 @@ int main(int argc, char **argv){
 	nh.getParam("new_pick_pass_node/DEG_1",DEG_1);
 	nh.getParam("new_pick_pass_node/DEG_2",DEG_2);
 	nh.getParam("new_pick_pass_node/DEG_3",DEG_3);
-	nh.getParam("new_pick_pass_node/DELAY_SOL",DELAY_SOL);
+	nh.getParam("new_pick_pass_node/DELAY_SOL_1",DELAY_SOL_1);
+	nh.getParam("new_pick_pass_node/DELAY_SOL_2",DELAY_SOL_2);
 	nh.getParam("new_pick_pass_node/DELAY_HAND",DELAY_HAND);
+	nh.getParam("new_pick_pass_node/DELAY_LAUNCH",DELAY_LAUNCH);
 	nh.getParam("new_pick_pass_node/DELAY_WIND",DELAY_WIND);
 
 	ros::Rate loop_rate(FREQ);
@@ -119,9 +123,8 @@ int main(int argc, char **argv){
 		}else{
 			if(order_pick   == 1 || step_pick > 0)   task_pick();
 			if(order_launch == 1 || step_launch > 0) task_launch();
+			pub_order.publish(data_order);
 		}
-
-
 
 		loop_rate.sleep();
 	}
@@ -162,7 +165,13 @@ void task_pick(){
 		}
 	}	
 
-	publish_order();
+	//publish_order();
+	data_order.data[0] = m_pw_pick;
+	data_order.data[1] = m_pw_pass;
+	data_order.data[2] = sol_mode;
+	data_order.data[3] = valve_mode;
+	data_order.data[4] = order_enc_pick;
+	data_order.data[5] = order_enc_pass;
 }
 
 void task_launch(){
@@ -191,8 +200,8 @@ void task_launch(){
 		cnt++;
 
 		if(touch_val == SOLENOID_LOCK_ON){ //launch ball
-			if(DELAY_SOL*FREQ/1000 > cnt) sol_mode = SOLENOID_MODE_ON;
-			else if(DELAY_SOL*FREQ*9/1000 > cnt) sol_mode = SOLENOID_MODE_OFF;
+			if(DELAY_SOL_1*FREQ/1000 > cnt) sol_mode = SOLENOID_MODE_ON;
+			else if(DELAY_SOL_2*FREQ/1000 > cnt) sol_mode = SOLENOID_MODE_OFF;
 			else cnt = 0;
 		}else{
 			cnt = 0;
@@ -202,7 +211,7 @@ void task_launch(){
 		static int cnt = 0;
 		cnt++;
 
-		if(cnt > 800*FREQ/1000){
+		if(cnt > DELAY_LAUNCH*FREQ/1000){
 			cnt = 0;
 			step_launch = 5;
 		}
@@ -242,7 +251,13 @@ void task_launch(){
 		}
 	}
 
-	publish_order();
+	//publish_order();
+	data_order.data[0] = m_pw_pick;
+	data_order.data[1] = m_pw_pass;
+	data_order.data[2] = sol_mode;
+	data_order.data[3] = valve_mode;
+	data_order.data[4] = order_enc_pick;
+	data_order.data[5] = order_enc_pass;
 }
 
 void debug_func(){

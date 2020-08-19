@@ -11,6 +11,12 @@
 		<param name="DELAY"  value="10"/>
 	</node>
 -->
+	<node pkg="pr_kick" name="new_kick_node" type="new_kick_node">
+		<param name="POW"    value="240"/>
+		<param name="DEG"    value="-22"/>
+		<param name="DELAY_SOL_1" value="100"/>
+		<param name="DELAY_SOL_2" value="200"/>
+	</node>
 	<node pkg="pr_pick_pass" name="new_pick_pass_node" type="new_pick_pass_node">
 		<param name="POW_LOWER" value="-70"/>
 		<param name="POW_RAISE" value="80"/>
@@ -18,8 +24,10 @@
 		<param name="DEG_1" value="-170"/>
 		<param name="DEG_2" value="-60"/>
 		<param name="DEG_3" value="0"/>
-		<param name="DELAY_SOL" value="50"/>
+		<param name="DELAY_SOL_1" value="50"/>
+		<param name="DELAY_SOL_2" value="450"/>
 		<param name="DELAY_HAND" value="500"/>
+		<param name="DELAY_LAUNCH" value="800"/>
 		<param name="DELAY_WIND" value="150"/>
 	</node>
 
